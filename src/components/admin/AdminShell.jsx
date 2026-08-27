@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import {
   LayoutGrid, Users, GraduationCap, ClipboardCheck, Briefcase, BookOpen, Inbox, UserSquare, Wallet, Megaphone,
-  Settings2, Shield, ChevronDown, Search, Bell, LogOut, FileEdit, Palette, Send, Sparkles, PanelLeftClose, PanelLeftOpen,
+  Settings2, Shield, ChevronDown, Search, Bell, LogOut, FileEdit, Palette, Send, Sparkles, PanelLeftClose, PanelLeftOpen, ClipboardList,
 } from 'lucide-react';
 import { LogoLockup } from '../ui/Logo.jsx';
 import { ROLE_ACCESS, AUDIT } from '../../lib/adminData.js';
@@ -11,6 +11,10 @@ import { AdminAI } from './AdminAI.jsx';
 const NAV_GROUPS = [
   { label: 'Overview', items: [
     { key: 'overview', to: '/admin', label: 'Dashboard', icon: LayoutGrid },
+  ] },
+  { label: 'Enquiry', items: [
+    { key: 'enquiries-admission',  to: '/admin/enquiries/admission',  label: 'Admission Enquiry',  icon: Inbox },
+    { key: 'enquiries-tekcampus',  to: '/admin/enquiries/tekcampus',  label: 'Tek Campus Enquiry', icon: ClipboardList },
   ] },
   { label: 'People', items: [
     { key: 'students', to: '/admin/students', label: 'Students', icon: Users },
@@ -22,7 +26,6 @@ const NAV_GROUPS = [
     { key: 'content', to: '/admin/content', label: 'Curriculum', icon: BookOpen },
   ] },
   { label: 'Growth', items: [
-    { key: 'enquiries', to: '/admin/enquiries', label: 'Enquiries', icon: Inbox },
     { key: 'placements', to: '/admin/placements', label: 'Placements', icon: Briefcase, badge: 'AI' },
     { key: 'outreach', to: '/admin/outreach', label: 'Outreach', icon: Send, badge: 'AI' },
   ] },
@@ -41,7 +44,7 @@ const ROLE_LABEL = {
   super: 'Super admin', admissions: 'Admissions', instructor: 'Instructor', finance: 'Finance',
 };
 
-export function AdminShell({ title, children, actions }) {
+export function AdminShell({ title, children, actions, fullHeight }) {
   const location = useLocation();
   const path = location.pathname;
   const navigate = useNavigate();
@@ -95,7 +98,51 @@ export function AdminShell({ title, children, actions }) {
                   )}
                   {collapsed && <div className="mx-3 my-2 h-px bg-slate-100 first:hidden" />}
                   {visible.map((n) => {
-                    const active = isActive(n.to);
+                    const hasChildren = !!n.children;
+                    const childActive = hasChildren && n.children.some(c => isActive(c.to));
+                    const active = !hasChildren && isActive(n.to);
+
+                    if (hasChildren) {
+                      return (
+                        <div key={n.label} className="mb-0.5 group/nav">
+                          <div
+                            title={collapsed ? n.label : undefined}
+                            className={`group relative flex cursor-default items-center rounded-lg font-medium transition-colors ${
+                              collapsed ? 'mx-1 h-10 justify-center px-0' : 'gap-2.5 px-3 py-2 text-[13px]'
+                            } ${childActive ? 'text-slate-900' : 'text-slate-600'}`}
+                          >
+                            <n.icon className={`shrink-0 ${collapsed ? 'h-[18px] w-[18px]' : 'h-4 w-4'}`} />
+                            {!collapsed && <span className="flex-1 truncate">{n.label}</span>}
+                            {!collapsed && (
+                              <ChevronDown className={`h-3 w-3 transition-transform ${childActive ? 'rotate-180' : ''}`} />
+                            )}
+                            {collapsed && (
+                              <div className="invisible absolute left-full top-0 z-50 ml-2 flex flex-col gap-1 rounded-lg bg-white p-2 shadow-xl ring-1 ring-slate-200 opacity-0 transition-all group-hover/nav:visible group-hover/nav:opacity-100">
+                                <p className="mb-1 border-b border-slate-100 pb-1 px-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">{n.label}</p>
+                                {n.children.map(c => (
+                                  <Link key={c.to} to={c.to} className={`whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium ${isActive(c.to) ? 'bg-gradient-to-r from-[#1E1B4B] to-[#2D5FA8] text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+                                    {c.label}
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          {!collapsed && (
+                            <div className="ml-5 mt-1 flex flex-col gap-0.5 border-l border-slate-200 pl-2">
+                              {n.children.map(c => {
+                                const cActive = isActive(c.to);
+                                return (
+                                  <Link key={c.to} to={c.to} className={`block rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${cActive ? 'bg-gradient-to-r from-[#1E1B4B] to-[#2D5FA8] text-white shadow-[0_4px_12px_-6px_#1E1B4B]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}>
+                                    {c.label}
+                                  </Link>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+
                     return (
                       <Link
                         key={n.to}
@@ -211,7 +258,10 @@ export function AdminShell({ title, children, actions }) {
             </div>
           )}
 
-          <main className="no-scrollbar px-4 py-5 md:px-6 md:py-6">{children}</main>
+          <main className={fullHeight
+            ? 'no-scrollbar h-full overflow-hidden px-4 pt-5 md:px-6 md:pt-6 flex flex-col'
+            : 'no-scrollbar px-4 py-5 md:px-6 md:py-6'
+          }>{children}</main>
         </div>
       </div>
       <AdminAI open={aiOpen} onClose={() => setAiOpen(false)} />

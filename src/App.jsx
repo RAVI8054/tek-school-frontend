@@ -22,6 +22,8 @@ import { PagesPage } from './features/admin/PagesPage.jsx';
 import { OutreachPage } from './features/admin/OutreachPage.jsx';
 import { PlacementsPage } from './features/admin/PlacementsPage.jsx';
 import { EnquiriesPage } from './features/admin/EnquiriesPage.jsx';
+import { AdmissionEnquiryPage } from './features/admin/enquiry/AdmissionEnquiryPage.jsx';
+import { TekCampusEnquiryPage } from './features/admin/enquiry/TekCampusEnquiryPage.jsx';
 import { ContentPage } from './features/admin/ContentPage.jsx';
 import { AssignmentsPage } from './features/admin/AssignmentsPage.jsx';
 import { DashboardShell } from './components/dashboard/DashboardShell.jsx';
@@ -59,7 +61,11 @@ function App() {
         <Route path="instructors" element={<InstructorsPage />} />
         <Route path="assignments" element={<AssignmentsPage />} />
         <Route path="content" element={<ContentPage />} />
-        <Route path="enquiries" element={<EnquiriesPage />} />
+        <Route path="enquiries" element={<EnquiriesPage />}>
+          <Route index element={<Navigate to="admission" replace />} />
+          <Route path="admission" element={<AdmissionEnquiryPage />} />
+          <Route path="tekcampus" element={<TekCampusEnquiryPage />} />
+        </Route>
         <Route path="placements" element={<PlacementsPage />} />
         <Route path="outreach" element={<OutreachPage />} />
         <Route path="pages" element={<PagesPage />} />

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Users, Loader2 } from "lucide-react";
+import { createEnquiry } from "../../lib/api.js";
 
 const NAVY = "#0F2A52";
 
@@ -29,6 +30,7 @@ export function BookDemoForm({
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("+91");
   const [phone, setPhone] = useState("");
+  const [education, setEducation] = useState("");
   const [month, setMonth] = useState(() => {
     const n = new Date();
     return new Date(n.getFullYear(), n.getMonth(), 1);
@@ -48,7 +50,6 @@ export function BookDemoForm({
       const v = p.get(k);
       if (v) next[k] = v.slice(0, 120);
     }
-    setTimeout(() => setUtm(next), 0);
   }, []);
 
   const emailInvalid = email.length > 0 && !EMAIL_RE.test(email.trim());
@@ -82,7 +83,25 @@ export function BookDemoForm({
     }
     setSubmitting(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Local ISO string to avoid timezone shifts
+      const offset = date.getTimezoneOffset() * 60000;
+      const localISOTime = (new Date(date.getTime() - offset)).toISOString().split("T")[0];
+      
+      const payload = {
+        name,
+        email,
+        phone: `${code} ${phone}`.trim(),
+        program,
+        education: education.trim() || undefined,
+        inquiry_type: "book demo",
+        slot: {
+          type: "scheduled",
+          dateString: localISOTime,
+          timePreference: time
+        }
+      };
+      
+      await createEnquiry(payload);
       setDone(slot);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -167,6 +186,11 @@ export function BookDemoForm({
           </select>
           <input id="bd-phone" required inputMode="tel" maxLength={20} autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^\d\s-]/g, ""))} className={`${fieldCls} min-w-0`} placeholder="98765 43210" />
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="bd-education" className={labelCls}>Education</label>
+        <input id="bd-education" maxLength={100} value={education} onChange={(e) => setEducation(e.target.value)} className={fieldCls} placeholder="e.g. Bachelors in Computer Science" />
       </div>
 
       <fieldset>

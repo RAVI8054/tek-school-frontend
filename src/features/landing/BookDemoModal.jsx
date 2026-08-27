@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, CheckCircle2, Users, Loader2 } from "lucide-react";
 import { FormModalShell } from "./FormModalShell.jsx";
+import { createEnquiry } from "../../lib/api.js";
 
 const NAVY = "#0F2A52";
 const PROGRAMS = ["AI Engineering", "Software Engineering", "Cloud Engineering", "Future Engineering"];
@@ -74,6 +75,7 @@ function BookDemoForm({ onClose, workshopTitle, presetProgram, heading, hideHead
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("+91");
   const [phone, setPhone] = useState("");
+  const [education, setEducation] = useState("");
   const [month, setMonth] = useState(() => {
     const n = new Date();
     return new Date(n.getFullYear(), n.getMonth(), 1);
@@ -105,8 +107,24 @@ function BookDemoForm({ onClose, workshopTitle, presetProgram, heading, hideHead
     }
     setSubmitting(true);
     try {
-      // Mock submit
-      await new Promise(r => setTimeout(r, 1000));
+      const offset = date.getTimezoneOffset() * 60000;
+      const localISOTime = (new Date(date.getTime() - offset)).toISOString().split("T")[0];
+      
+      const payload = {
+        name,
+        email,
+        phone: `${code} ${phone}`.trim(),
+        program,
+        education: education.trim() || undefined,
+        inquiry_type: "book demo",
+        slot: {
+          type: "scheduled",
+          dateString: localISOTime,
+          timePreference: time
+        }
+      };
+      
+      await createEnquiry(payload);
       setDone(slot);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -174,6 +192,11 @@ function BookDemoForm({ onClose, workshopTitle, presetProgram, heading, hideHead
           </select>
           <input id="bd-phone" required inputMode="tel" maxLength={20} autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^\d\s-]/g, ""))} className={`${fieldCls} min-w-0`} placeholder="98765 43210" />
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="bd-education" className={labelCls}>Education</label>
+        <input id="bd-education" maxLength={100} value={education} onChange={(e) => setEducation(e.target.value)} className={fieldCls} placeholder="e.g. Bachelors in Computer Science" />
       </div>
 
       <fieldset>
