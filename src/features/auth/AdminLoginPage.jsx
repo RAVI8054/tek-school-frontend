@@ -8,8 +8,8 @@ export function AdminLoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
   
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("tekadmin@gmail.com");
+  const [password, setPassword] = useState("tekadmin");
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
