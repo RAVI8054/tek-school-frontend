@@ -124,9 +124,10 @@ export async function updateEnquiryStatus(id, data) {
  * Create a new enquiry (e.g. from the frontend landing pages).
  * @param {Object} data - The enquiry data
  */
-export async function createEnquiry(data) {
+export async function createEnquiry(data, options = {}) {
   return fetchApi(`/enquiry/enquiry`, {
     method: 'POST',
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
+    ...options
   });
 }

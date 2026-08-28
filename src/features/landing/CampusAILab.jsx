@@ -203,6 +203,7 @@ export function CampusAILab() {
         interest="AI Lab Set up"
         institutionType="AI Lab enquiry"
         cta="Send request"
+        inquiryType="ai lab"
       />
     </Shell>
   );

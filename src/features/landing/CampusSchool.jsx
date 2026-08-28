@@ -247,6 +247,7 @@ export function CampusSchool() {
         interest="Tek Campus at school"
         institutionType="School"
         cta="Send my proposal request"
+        inquiryType="school"
       />
 
       <LeadModal
@@ -258,6 +259,7 @@ export function CampusSchool() {
         interest="Tek Campus at college"
         institutionType="College / University"
         cta="Request college details"
+        inquiryType="college"
       />
       <CatalogModal open={catalog} onClose={() => setCatalog(false)} />
     </Shell>

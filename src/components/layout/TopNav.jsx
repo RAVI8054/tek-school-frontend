@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Package, Layout, Brain, Rocket, Target, Calendar, Home as HomeIcon } from 'lucide-react';
+import { Menu, X, Package, Layout, Brain, Rocket, Target, Calendar, Home as HomeIcon, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { LogoLockup } from '../ui/Logo.jsx';
 import { MegaMenu } from './MegaMenu.jsx';
@@ -34,8 +34,10 @@ const NAV_ITEMS = [
 export function TopNav() {
   const location = useLocation();
   const path = location.pathname;
-  const { user } = useStudentAuth();
+  const { user, logout } = useStudentAuth();
   const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const lastY = useRef(0);
@@ -58,6 +60,16 @@ export function TopNav() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, [isProgramPage]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { if (hidden) setOpen(false); }, [hidden]);
@@ -104,12 +116,45 @@ export function TopNav() {
             Tek Campus
           </Link>
           {user ? (
-            <Link
-              to="/dashboard"
-              className="rounded-full bg-[#1E1B4B] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1E1B4B]/90 transition-colors"
-            >
-              Dashboard
-            </Link>
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E1B4B] text-white hover:bg-[#1E1B4B]/90 transition-colors"
+              >
+                {user.avatar ? (
+                  <img src={user.avatar} alt="Profile" className="h-full w-full rounded-full object-cover" />
+                ) : (
+                  <User className="h-5 w-5" />
+                )}
+              </button>
+
+              {profileOpen && (
+                <div className="absolute right-0 mt-2 w-48 rounded-2xl border bg-white p-2 shadow-xl overflow-hidden">
+                  <div className="px-3 py-2 border-b mb-1">
+                    <p className="text-sm font-semibold text-[#0F2A52] truncate">{user.name || "Student"}</p>
+                    <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                  </div>
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-[#0F2A52]"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setProfileOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-[#FF6B6B] hover:bg-[#FF6B6B]/10"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <button
               onClick={openSignIn}
