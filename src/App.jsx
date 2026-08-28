@@ -41,6 +41,8 @@ import Assignments from './features/student/course/Assignments.jsx';
 import Resources from './features/student/course/Resources.jsx';
 import LiveRoom from './features/student/live-room/LiveRoom.jsx';
 import Community from './features/student/community/Community.jsx';
+import CommunityLayout from './features/student/community/CommunityLayout.jsx';
+import ChannelPage from './features/student/community/ChannelPage.jsx';
 import Placements from './features/student/placements/Placements.jsx';
 import StudentProfile from './features/student/profile/StudentProfile.jsx';
 import Settings from './features/student/settings/Settings.jsx';
@@ -53,6 +55,8 @@ const Placeholder = ({ title }) => (
     <h1 className="text-2xl font-bold">{title} Placeholder</h1>
   </div>
 );
+
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
@@ -109,7 +113,12 @@ function App() {
           <Route path="live-room" element={<LiveRoom />} />
           <Route path="profile" element={<StudentProfile />} />
           <Route path="placements" element={<Placements />} />
-          <Route path="community" element={<Community />} />
+          <Route path="community">
+            <Route index element={<Community />} />
+            <Route element={<CommunityLayout />}>
+              <Route path=":channelId" element={<ChannelPage />} />
+            </Route>
+          </Route>
           <Route path="settings" element={<Settings />} />
           <Route path="help" element={<HelpCenter />} />
         </Route>
@@ -118,6 +127,7 @@ function App() {
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    <Toaster />
     <SignInPanel />
     </AuthProvider>
     </StudentAuthProvider>

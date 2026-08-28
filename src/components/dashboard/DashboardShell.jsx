@@ -160,8 +160,8 @@ export function DashboardShell() {
           )}
         </header>
 
-        <div className="no-scrollbar flex-1 overflow-y-auto">
-          <main className="mx-auto max-w-[1400px] px-4 py-6 pb-28 md:px-6 md:py-8 lg:pb-12">
+        <div className={`no-scrollbar flex-1 flex flex-col ${path.startsWith('/dashboard/community/') ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+          <main className={`flex-1 mx-auto w-full max-w-[1400px] ${path.startsWith('/dashboard/community/') ? 'px-4 py-4 md:px-6 md:py-4 flex flex-col min-h-0' : 'px-4 py-6 pb-28 md:px-6 md:py-8 lg:pb-12'}`}>
             <Outlet />
           </main>
           <NotificationDrawer

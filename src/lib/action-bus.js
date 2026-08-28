@@ -38,25 +38,19 @@ export function useAction() {
   return { action, close: () => setAction(null) };
 }
 
-// Simple toast queue
+import toast from 'react-hot-toast';
 
-const listeners = new Set();
-let toasts = [];
-let seq = 0;
-export function pushToast(message) {
-  const t = { id: ++seq, message };
-  toasts = [...toasts, t];
-  listeners.forEach((l) => l(toasts));
-  setTimeout(() => {
-    toasts = toasts.filter((x) => x.id !== t.id);
-    listeners.forEach((l) => l(toasts));
-  }, 3200);
+export function pushToast(message, type = "success") {
+  if (type === "success") {
+    toast.success(message, { position: "top-center" });
+  } else if (type === "error") {
+    toast.error(message, { position: "top-center" });
+  } else {
+    toast(message, { position: "top-center" });
+  }
 }
+
+// Keeping a dummy hook so components using it don't break if they were left unmodified
 export function useToasts() {
-  const [list, setList] = useState(toasts);
-  useEffect(() => {
-    listeners.add(setList);
-    return () => {listeners.delete(setList);};
-  }, []);
-  return list;
+  return [];
 }

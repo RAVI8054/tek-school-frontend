@@ -131,3 +131,56 @@ export async function createEnquiry(data, options = {}) {
     ...options
   });
 }
+
+// ============================================================================
+// STUDENT COMMUNITY APIs
+// ============================================================================
+
+export async function getCommunityChannels(filter = 'discover', search = '') {
+  const query = new URLSearchParams();
+  if (filter) query.append('filter', filter);
+  if (search) query.append('search', search);
+  return fetchApi(`/student/community/channels?${query.toString()}`);
+}
+
+export async function createCommunityChannel(data) {
+  return fetchApi(`/student/community/channels`, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+export async function joinCommunityChannel(channelId) {
+  return fetchApi(`/student/community/channels/join`, {
+    method: 'POST',
+    body: JSON.stringify({ channelId })
+  });
+}
+
+export async function deleteCommunityChannel(channelId) {
+  return fetchApi(`/student/community/channels/delete`, {
+    method: 'DELETE',
+    body: JSON.stringify({ channelId })
+  });
+}
+
+export async function getChannelMessages(channelId, limit = 20, offset = 0) {
+  const query = new URLSearchParams({ channelId, limit, offset });
+  return fetchApi(`/student/community/channels/messages?${query.toString()}`);
+}
+
+export async function sendChannelMessage(data) {
+  // data = { channelId, content, parentMessageId }
+  return fetchApi(`/student/community/channels/messages`, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+export async function reactToChannelMessage(messageId, action) {
+  return fetchApi(`/student/community/messages/react`, {
+    method: 'POST',
+    body: JSON.stringify({ messageId, action })
+  });
+}
+
