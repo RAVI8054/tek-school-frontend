@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { LogoLockup } from '../ui/Logo.jsx';
 import { MegaMenu } from './MegaMenu.jsx';
 import { openSignIn } from '../../lib/auth.js';
+import { useStudentAuth } from "../../context/StudentAuthContext.jsx";
 import heroStudents from "../../assets/hero-students.jpg";
 
 const programsRows = [
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
 export function TopNav() {
   const location = useLocation();
   const path = location.pathname;
+  const { user } = useStudentAuth();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
@@ -101,12 +103,21 @@ export function TopNav() {
           >
             Tek Campus
           </Link>
-          <button
-            onClick={openSignIn}
-            className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-          >
-            Sign In
-          </button>
+          {user ? (
+            <Link
+              to="/dashboard"
+              className="rounded-full bg-[#1E1B4B] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1E1B4B]/90 transition-colors"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <button
+              onClick={openSignIn}
+              className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Sign In
+            </button>
+          )}
           <button
             aria-label="Menu"
             className="xl:hidden grid h-10 w-10 place-items-center rounded-full hover:bg-muted"

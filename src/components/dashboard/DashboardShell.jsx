@@ -2,7 +2,7 @@ import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { LayoutDashboard, BookOpen, Briefcase, MessageCircle, Settings, LogOut, Menu, X, Bell, HelpCircle, ChevronDown, GraduationCap, User } from 'lucide-react';
 import { LogoLockup } from '../ui/Logo.jsx';
-import { useSession, useHydrated, signOut } from '../../lib/auth.js';
+import { useStudentAuth } from '../../context/StudentAuthContext.jsx';
 import { ActionModals } from '../ActionModals.jsx';
 import { NotificationDrawer, SEED_NOTIFICATIONS } from './NotificationDrawer.jsx';
 
@@ -22,8 +22,7 @@ const SECONDARY = [
 const ALL_NAV = [...PRIMARY, ...SECONDARY];
 
 export function DashboardShell() {
-  const session = useSession();
-  const hydrated = useHydrated();
+  const { user, logout } = useStudentAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname;
@@ -35,8 +34,7 @@ export function DashboardShell() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { setMobileOpen(false); setNotifOpen(false); }, [path]);
 
-  if (!hydrated) return null;
-  const s = session;
+  const s = user;
   if (!s) return null;
 
   const isActive = (to, exact) => (exact ? path === to : path === to || path.startsWith(to + '/'));
@@ -114,11 +112,11 @@ export function DashboardShell() {
                     <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
                       <div className="flex items-center gap-3 rounded-xl px-3 py-2.5">
                         <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-blue-deep)] text-xs font-bold text-white">
-                          {s.avatarInitials}
+                          {s.name ? s.name.charAt(0).toUpperCase() : 'S'}
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-bold">{s.name}</p>
-                          <p className="truncate text-[11px] text-slate-500">{s.email}</p>
+                          <span className="font-semibold text-slate-800">{s.name || 'Student'}</span>
+                          <p className="truncate text-[11px] text-slate-500">{s.email || 'student@tek.school'}</p>
                         </div>
                       </div>
                       <div className="my-1 h-px bg-slate-100" />
@@ -128,7 +126,7 @@ export function DashboardShell() {
                         </Link>
                       ))}
                       <button
-                        onClick={() => { signOut(); navigate('/'); }}
+                        onClick={async () => { await logout(); navigate('/'); }}
                         className="mt-0.5 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-foreground"
                       >
                         <LogOut className="h-4 w-4 text-slate-400" /> Sign out
@@ -155,7 +153,7 @@ export function DashboardShell() {
                   <n.icon className="h-4 w-4" /> {n.label}
                 </Link>
               ))}
-              <button onClick={() => { signOut(); navigate('/'); }} className="mt-2 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-500 hover:bg-slate-50">
+              <button onClick={async () => { await logout(); navigate('/'); }} className="mt-2 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-500 hover:bg-slate-50">
                 <LogOut className="h-4 w-4" /> Sign out
               </button>
             </div>

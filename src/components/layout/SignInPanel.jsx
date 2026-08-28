@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Sparkles, Mail, CheckCircle2, ArrowRight } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { signInDemo, useOpenSignInListener } from "../../lib/auth.js";
+import { Link } from "react-router-dom";
+import { useOpenSignInListener } from "../../lib/auth.js";
+import { useStudentAuth } from "../../context/StudentAuthContext.jsx";
 import { LogoLockup } from "../ui/Logo.jsx";
 
 export function SignInPanel() {
@@ -14,7 +15,8 @@ export function SignInPanel() {
   const [loading, setLoading] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
   const firstFieldRef = useRef(null);
-  const navigate = useNavigate();
+
+  const { login } = useStudentAuth();
 
   useOpenSignInListener(() => {
     setOpen(true);
@@ -39,22 +41,23 @@ export function SignInPanel() {
     };
   }, [open, showJoin, mode]);
 
-  function submitSignIn(e) {
+  async function submitSignIn(e) {
     e.preventDefault();
     setError(null);
-    if (!/^\\S+@\\S+\\.\\S+$/.test(email)) return setError("Enter a valid email.");
-    if (email.trim().toLowerCase() !== "demo@tek.school" || password !== "tek@26") {
-      return setError("Invalid credentials. Please check your email and password.");
-    }
+    if (!/^\S+@\S+\.\S+$/.test(email)) return setError("Enter a valid email.");
+    
     setLoading(true);
-    setTimeout(() => {
-      signInDemo(email);
-      setLoading(false);
+    const result = await login(email, password);
+    setLoading(false);
+    
+    if (result.success) {
       setOpen(false);
       setEmail("");
       setPassword("");
-      navigate("/app");
-    }, 500);
+      // The user stays on the landing page; the header will now show "Dashboard"
+    } else {
+      setError(result.error || "Invalid credentials. Please check your email and password.");
+    }
   }
 
   function submitForgot(e) {

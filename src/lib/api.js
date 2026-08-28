@@ -5,24 +5,84 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api
  */
 async function fetchApi(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
-  const ADMIN_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhODZiODdkZjAyMzkyZTQ3Y2YyYmUzZSIsInJvbGUiOiJhZG1pbiIsInNlc3Npb25JZCI6bnVsbCwiaWF0IjoxNzg3ODE5MDg3LCJleHAiOjE3ODg0MjM4ODd9.wroqzmqdltYcGYgcmeYg6-ZAztpQNlT7yFhyXQg3wcw";
   
+  // Dynamically get the token based on current route
+  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+  const token = isAdminRoute 
+    ? localStorage.getItem('tek_admin_token') 
+    : localStorage.getItem('tek_student_token');
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${ADMIN_TOKEN}`,
-      ...options.headers,
-    },
+    headers,
     credentials: 'omit',
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      if (isAdminRoute) {
+        localStorage.removeItem('tek_admin_token');
+        localStorage.removeItem('tek_admin_user');
+        window.dispatchEvent(new Event('auth:unauthorized'));
+      } else {
+        localStorage.removeItem('tek_student_token');
+        localStorage.removeItem('tek_student_user');
+        window.dispatchEvent(new Event('auth:student_unauthorized'));
+      }
+    }
     const error = await response.json().catch(() => ({}));
     throw new Error(error.message || `API request failed with status ${response.status}`);
   }
 
   return response.json();
+}
+
+/**
+ * Login admin user
+ */
+export async function loginAdmin(credentials) {
+  // Credentials should be { email, password }. Omit clientType for admin.
+  return fetchApi(`/auth/login`, {
+    method: 'POST',
+    body: JSON.stringify(credentials)
+  });
+}
+
+/**
+ * Logout admin user
+ */
+export async function logoutAdmin() {
+  return fetchApi(`/auth/logout`, {
+    method: 'POST',
+  });
+}
+
+/**
+ * Login student user
+ */
+export async function loginStudent(credentials) {
+  return fetchApi(`/auth/login`, {
+    method: 'POST',
+    body: JSON.stringify({ ...credentials, clientType: 'studentPanel' })
+  });
+}
+
+/**
+ * Logout student user
+ */
+export async function logoutStudent() {
+  return fetchApi(`/auth/logout`, {
+    method: 'POST',
+  });
 }
 
 /**

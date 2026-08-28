@@ -7,6 +7,7 @@ import {
 import { LogoLockup } from '../ui/Logo.jsx';
 import { ROLE_ACCESS, AUDIT } from '../../lib/adminData.js';
 import { AdminAI } from './AdminAI.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 const NAV_GROUPS = [
   { label: 'Overview', items: [
@@ -40,22 +41,21 @@ const NAV_GROUPS = [
   ] },
 ];
 
-const ROLE_LABEL = {
-  super: 'Super admin', admissions: 'Admissions', instructor: 'Instructor', finance: 'Finance',
-};
+
 
 export function AdminShell({ title, children, actions, fullHeight }) {
   const location = useLocation();
   const path = location.pathname;
   const navigate = useNavigate();
-  const [role, setRole] = useState('super');
+  const { user, logout } = useAuth();
+  
   const [collapsed, setCollapsed] = useState(false);
   const [showAudit, setShowAudit] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const role = user?.role || 'admin';
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    setTimeout(() => setRole(localStorage.getItem("tek-admin-role") ?? "super"), 0);
     const stored = localStorage.getItem('tek-admin-nav-collapsed');
     setTimeout(() => setCollapsed(stored === null ? true : stored === '1'), 0);
   }, []);
@@ -188,20 +188,35 @@ export function AdminShell({ title, children, actions, fullHeight }) {
             {!collapsed && (
               <>
                 <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Signed in as</label>
-                <div className="relative mt-1">
-                  <select value={role} onChange={(e) => setRole(e.target.value)}
-                    className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2 pr-8 text-xs font-semibold outline-none focus:border-[var(--accent-blue-deep)]">
-                    {Object.keys(ROLE_LABEL).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <div className="mt-1 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-indigo-100 text-xs font-bold text-indigo-700">
+                    {user?.name?.charAt(0).toUpperCase() || 'A'}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-bold text-slate-900">{user?.name || 'Admin'}</p>
+                    <p className="truncate text-[10px] font-medium text-slate-500 capitalize">{user?.role || 'Admin'}</p>
+                  </div>
                 </div>
-                <button onClick={() => navigate('/')} className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50">
+                <button 
+                  onClick={async () => {
+                    await logout();
+                    navigate('/admin/login');
+                  }} 
+                  className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50"
+                >
                   <LogOut className="h-3 w-3" /> Exit admin
                 </button>
               </>
             )}
             {collapsed && (
-              <button onClick={() => navigate('/')} className="grid h-9 w-full place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" title="Exit admin">
+              <button 
+                onClick={async () => {
+                  await logout();
+                  navigate('/admin/login');
+                }} 
+                className="grid h-9 w-full place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" 
+                title="Exit admin"
+              >
                 <LogOut className="h-3.5 w-3.5" />
               </button>
             )}

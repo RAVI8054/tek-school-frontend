@@ -3,8 +3,13 @@ import LandingPage from './features/landing/LandingPage.jsx';
 import { AboutPage } from './features/landing/AboutPage.jsx';
 import { ContactPage } from './features/landing/ContactPage.jsx';
 import { CoursesPage } from './features/landing/CoursesPage.jsx';
-import { LoginPage } from './features/auth/LoginPage.jsx';
+
+import { AdminLoginPage } from './features/auth/AdminLoginPage.jsx';
 import { SignInPanel } from './components/layout/SignInPanel.jsx';
+import { ProtectedRoute } from './components/layout/ProtectedRoute.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
+import { StudentAuthProvider } from './context/StudentAuthContext.jsx';
+import { StudentProtectedRoute } from './components/layout/StudentProtectedRoute.jsx';
 import { ProgramTrack } from './features/landing/ProgramTrack.jsx';
 import { CampusHub } from './features/landing/CampusHub.jsx';
 import { CampusCollege } from './features/landing/CampusCollege.jsx';
@@ -28,6 +33,19 @@ import { ContentPage } from './features/admin/ContentPage.jsx';
 import { AssignmentsPage } from './features/admin/AssignmentsPage.jsx';
 import { DashboardShell } from './components/dashboard/DashboardShell.jsx';
 import { DashboardOverview } from './features/dashboard/DashboardOverview.jsx';
+// Student Dashboard
+import LearningDashboard from './features/student/learning/LearningDashboard.jsx';
+import CourseSyllabus from './features/student/course/CourseSyllabus.jsx';
+import CourseClasses from './features/student/course/CourseClasses.jsx';
+import Assignments from './features/student/course/Assignments.jsx';
+import Resources from './features/student/course/Resources.jsx';
+import LiveRoom from './features/student/live-room/LiveRoom.jsx';
+import Community from './features/student/community/Community.jsx';
+import Placements from './features/student/placements/Placements.jsx';
+import StudentProfile from './features/student/profile/StudentProfile.jsx';
+import Settings from './features/student/settings/Settings.jsx';
+import HelpCenter from './features/student/help/HelpCenter.jsx';
+
 
 // Placeholder
 const Placeholder = ({ title }) => (
@@ -38,7 +56,8 @@ const Placeholder = ({ title }) => (
 
 function App() {
   return (
-    <>
+    <StudentAuthProvider>
+    <AuthProvider>
     <Routes>
       {/* Landing Page */}
       <Route path="/" element={<LandingPage />} />
@@ -48,12 +67,15 @@ function App() {
       <Route path="/programs/:track" element={<ProgramTrack />} />
       <Route path="/campus" element={<CampusHub />} />
       <Route path="/campus/college" element={<CampusCollege />} />
-      <Route path="/student" element={<LoginPage />} />
+
       <Route path="/campus/school" element={<CampusSchool />} />
       <Route path="/campus/ai-lab" element={<CampusAILab />} />
       
-      {/* Admin Routes - Each page includes its own AdminShell */}
-      <Route path="/admin">
+      {/* Admin Login Route (Unprotected) */}
+      <Route path="/admin/login" element={<AdminLoginPage />} />
+
+      {/* Admin Routes - Protected for staff roles */}
+      <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'admissions', 'instructor', 'finance']} />}>
         <Route index element={<AdminDashboard />} />
         <Route path="students" element={<StudentsPage />} />
         {/* Fill other admin routes with placeholders for now */}
@@ -76,22 +98,29 @@ function App() {
       </Route>
 
       {/* Student Dashboard Routes - DashboardShell uses an Outlet */}
-      <Route path="/dashboard" element={<DashboardShell />}>
-        <Route index element={<DashboardOverview />} />
-        <Route path="learning" element={<Placeholder title="Learning" />} />
-        <Route path="course" element={<Placeholder title="Course" />} />
-        <Route path="profile" element={<Placeholder title="Profile" />} />
-        <Route path="placements" element={<Placeholder title="Placements" />} />
-        <Route path="community" element={<Placeholder title="Community" />} />
-        <Route path="settings" element={<Placeholder title="Settings" />} />
-        <Route path="help" element={<Placeholder title="Help center" />} />
+      <Route path="/dashboard" element={<StudentProtectedRoute />}>
+        <Route element={<DashboardShell />}>
+          <Route index element={<DashboardOverview />} />
+          <Route path="learning" element={<LearningDashboard />} />
+          <Route path="course" element={<CourseSyllabus />} />
+          <Route path="classes" element={<CourseClasses />} />
+          <Route path="assignments" element={<Assignments />} />
+          <Route path="resources" element={<Resources />} />
+          <Route path="live-room" element={<LiveRoom />} />
+          <Route path="profile" element={<StudentProfile />} />
+          <Route path="placements" element={<Placements />} />
+          <Route path="community" element={<Community />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="help" element={<HelpCenter />} />
+        </Route>
       </Route>
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     <SignInPanel />
-    </>
+    </AuthProvider>
+    </StudentAuthProvider>
   );
 }
 
