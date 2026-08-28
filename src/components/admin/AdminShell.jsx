@@ -17,6 +17,9 @@ const NAV_GROUPS = [
     { key: 'enquiries-admission',  to: '/admin/enquiries/admission',  label: 'Admission Enquiry',  icon: Inbox },
     { key: 'enquiries-tekcampus',  to: '/admin/enquiries/tekcampus',  label: 'Tek Campus Enquiry', icon: ClipboardList },
   ] },
+  { label: 'Community', items: [
+    { key: 'community', to: '/admin/community', label: 'Community', icon: Users },
+  ] },
   { label: 'People', items: [
     { key: 'students', to: '/admin/students', label: 'Students', icon: Users },
     { key: 'cohorts', to: '/admin/cohorts', label: 'Cohorts & Classes', icon: GraduationCap },
@@ -43,7 +46,7 @@ const NAV_GROUPS = [
 
 
 
-export function AdminShell({ title, children, actions, fullHeight }) {
+export function AdminShell({ title, children, actions, fullHeight, hideDefaultSearch }) {
   const location = useLocation();
   const path = location.pathname;
   const navigate = useNavigate();
@@ -223,8 +226,8 @@ export function AdminShell({ title, children, actions, fullHeight }) {
           </div>
         </aside>
 
-        <div className="min-w-0 flex-1 h-full overflow-y-auto">
-          <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="min-w-0 flex-1 h-full overflow-y-auto flex flex-col">
+          <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur shrink-0">
             <div className="flex items-center gap-3 px-4 py-2.5 md:px-6">
               <button
                 onClick={() => setCollapsed((c) => !c)}
@@ -237,10 +240,12 @@ export function AdminShell({ title, children, actions, fullHeight }) {
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">TekSchool · Internal</p>
                 <h1 className="truncate font-display text-lg font-bold">{title}</h1>
               </div>
-              <div className="relative hidden max-w-xs flex-1 md:block">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-                <input placeholder="Search students, cohorts, jobs…" className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs outline-none focus:border-[var(--accent-blue-deep)]" />
-              </div>
+              {!hideDefaultSearch && (
+                <div className="relative hidden max-w-xs flex-1 md:block">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                  <input placeholder="Search students, cohorts, jobs…" className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs outline-none focus:border-[var(--accent-blue-deep)]" />
+                </div>
+              )}
               {actions}
               <button
                 onClick={() => setAiOpen(true)}
@@ -274,8 +279,8 @@ export function AdminShell({ title, children, actions, fullHeight }) {
           )}
 
           <main className={fullHeight
-            ? 'no-scrollbar h-full overflow-hidden px-4 pt-5 md:px-6 md:pt-6 flex flex-col'
-            : 'no-scrollbar px-4 py-5 md:px-6 md:py-6'
+            ? 'no-scrollbar flex-1 overflow-hidden px-4 pt-5 md:px-6 md:pt-6 flex flex-col'
+            : 'no-scrollbar flex-1 px-4 py-5 md:px-6 md:py-6'
           }>{children}</main>
         </div>
       </div>

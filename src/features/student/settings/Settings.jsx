@@ -1,6 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
-import { signOut, useSession } from "../../../lib/auth";
+import { useStudentAuth } from "../../../context/StudentAuthContext.jsx";
 import { openAction, pushToast } from "../../../lib/action-bus";
 import { LogOut, SlidersHorizontal, Bell, Lock, CreditCard, Palette, ShieldCheck, Download, Trash2, Check, Settings as SettingsIcon, ChevronRight, UserRound } from "lucide-react";
 
@@ -29,7 +29,7 @@ const TAB_DESC = {
 
 
 function SettingsPage() {
-  const session = useSession();
+  const { user: session, logout: signOut } = useStudentAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState("account");
   const [prefs, setPrefs] = useState({ classReminders: true, weeklyDigest: true, placementAlerts: true, communityPings: false, marketingEmails: false, smsReminders: true, autoplay: true, captions: false });
@@ -92,7 +92,7 @@ function SettingsPage() {
             <Link to="/dashboard/profile" className="flex w-full items-center gap-2.5 rounded-2xl px-3 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-50 hover:text-foreground">
               <UserRound className="h-4 w-4" /> Profile
             </Link>
-            <button onClick={() => {signOut();navigate({ to: "/" });}} className="flex w-full items-center gap-2.5 rounded-2xl px-3 py-2.5 text-sm font-semibold text-coral-foreground hover:bg-coral/10">
+            <button onClick={async () => { await signOut(); navigate("/"); }} className="flex w-full items-center gap-2.5 rounded-2xl px-3 py-2.5 text-sm font-semibold text-coral-foreground hover:bg-coral/10">
               <LogOut className="h-4 w-4" /> Sign out
             </button>
           </div>

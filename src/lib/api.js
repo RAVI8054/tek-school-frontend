@@ -184,3 +184,44 @@ export async function reactToChannelMessage(messageId, action) {
   });
 }
 
+// ============================================================================
+// ADMIN COMMUNITY APIs
+// ============================================================================
+
+export async function getAdminCommunityChannels(search = '') {
+  const query = new URLSearchParams();
+  if (search) query.append('search', search);
+  return fetchApi(`/admin/community/channels?${query.toString()}`);
+}
+
+export async function getAdminChannelMessages(channelId) {
+  return fetchApi(`/admin/community/channels/${channelId}/messages`);
+}
+
+export async function editAdminCommunityChannel(channelId, data) {
+  return fetchApi(`/admin/community/channels/edit`, {
+    method: 'PUT',
+    body: JSON.stringify({ channelId, ...data })
+  });
+}
+
+export async function deleteAdminCommunityChannel(channelId) {
+  return fetchApi(`/admin/community/channels/delete`, {
+    method: 'DELETE',
+    body: JSON.stringify({ channelId })
+  });
+}
+
+export async function deleteAdminCommunityMessage(messageId) {
+  return fetchApi(`/admin/community/messages/${messageId}`, {
+    method: 'DELETE'
+  });
+}
+
+export async function blockAdminCommunityUser(userId) {
+  return fetchApi(`/admin/community/users/block`, {
+    method: 'POST',
+    body: JSON.stringify({ userId })
+  });
+}
+

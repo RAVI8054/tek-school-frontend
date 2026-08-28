@@ -1,14 +1,4 @@
 import { cn } from "../lib/utils.js";
-
-
-
-
-
-
-
-
-
-
 export function Avatar({ name, initials, photo, size = 40, className, ring }) {
   const label = initials ?? name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
   return (

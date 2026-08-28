@@ -31,8 +31,10 @@ import { AdmissionEnquiryPage } from './features/admin/enquiry/AdmissionEnquiryP
 import { TekCampusEnquiryPage } from './features/admin/enquiry/TekCampusEnquiryPage.jsx';
 import { ContentPage } from './features/admin/ContentPage.jsx';
 import { AssignmentsPage } from './features/admin/AssignmentsPage.jsx';
+import { AdminCommunityPage } from './features/admin/community/AdminCommunityPage.jsx';
 import { DashboardShell } from './components/dashboard/DashboardShell.jsx';
 import { DashboardOverview } from './features/dashboard/DashboardOverview.jsx';
+import { AdminSettingsPage } from './features/admin/settings/AdminSettingsPage.jsx';
 // Student Dashboard
 import LearningDashboard from './features/student/learning/LearningDashboard.jsx';
 import CourseSyllabus from './features/student/course/CourseSyllabus.jsx';
@@ -97,8 +99,9 @@ function App() {
         <Route path="pages" element={<PagesPage />} />
         <Route path="studio" element={<StudioPage />} />
         <Route path="marketing" element={<Placeholder title="Campaigns" />} />
+        <Route path="community" element={<AdminCommunityPage />} />
         <Route path="finance" element={<FinancePage />} />
-        <Route path="settings" element={<Placeholder title="Settings" />} />
+        <Route path="settings" element={<AdminSettingsPage />} />
       </Route>
 
       {/* Student Dashboard Routes - DashboardShell uses an Outlet */}
