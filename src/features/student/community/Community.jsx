@@ -53,8 +53,8 @@ export default function CommunityPage() {
         if (enrolledRes.status === "success") setEnrolledChannels(enrolledRes.data.channels);
         if (discoverRes.status === "success") setDiscoverChannels(discoverRes.data.channels);
       }
-    } catch {
-      pushToast("Failed to load channels", "error");
+    } catch (err) {
+      pushToast(err.message || "Failed to load channels", "error");
     } finally {
       setLoading(false);
     }
@@ -89,8 +89,8 @@ export default function CommunityPage() {
       } else {
         pushToast(res.message || "Failed to create channel", "error");
       }
-    } catch {
-      pushToast("An error occurred", "error");
+    } catch (err) {
+      pushToast(err.message || "An error occurred", "error");
     } finally {
       setIsCreating(false);
     }
