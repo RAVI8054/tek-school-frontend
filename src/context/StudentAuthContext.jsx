@@ -1,29 +1,39 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { loginStudent as apiLoginStudent, logoutStudent as apiLogoutStudent } from '../lib/api.js';
+import { loginStudent as apiLoginStudent, logoutStudent as apiLogoutStudent, refreshAuthToken } from '../lib/api.js';
 
 const StudentAuthContext = createContext();
 
 export function StudentAuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem('tek_student_user');
-    if (storedUser) {
-      try { return JSON.parse(storedUser); } catch { return null; }
-    }
-    return null;
-  });
-  const [token, setToken] = useState(() => localStorage.getItem('tek_student_token'));
-  const [isInitializing] = useState(false);
+  const [user, setUser] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   // Listen for 401 from API globally
   useEffect(() => {
+    let mounted = true;
+
+    const initAuth = async () => {
+      try {
+        const res = await refreshAuthToken();
+        if (mounted && res?.data?.user && res.data.user.role === 'student') {
+          setUser(res.data.user);
+        }
+      } catch {
+        // Expected if no cookie or expired cookie, ignore
+      } finally {
+        if (mounted) setIsInitializing(false);
+      }
+    };
+    
+    initAuth();
+
     const handleUnauthorized = () => {
       setUser(null);
-      setToken(null);
-      localStorage.removeItem('tek_student_user');
-      localStorage.removeItem('tek_student_token');
     };
     window.addEventListener('auth:student_unauthorized', handleUnauthorized);
-    return () => window.removeEventListener('auth:student_unauthorized', handleUnauthorized);
+    return () => {
+      mounted = false;
+      window.removeEventListener('auth:student_unauthorized', handleUnauthorized);
+    };
   }, []);
 
   const login = async (email, password) => {
@@ -31,13 +41,8 @@ export function StudentAuthProvider({ children }) {
       const res = await apiLoginStudent({ email, password });
       
       const userData = res.data.user;
-      const authToken = res.token;
 
       setUser(userData);
-      setToken(authToken);
-
-      localStorage.setItem('tek_student_user', JSON.stringify(userData));
-      localStorage.setItem('tek_student_token', authToken);
 
       return { success: true };
     } catch (error) {
@@ -48,22 +53,16 @@ export function StudentAuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     try {
-      if (token) {
-        await apiLogoutStudent();
-      }
+      await apiLogoutStudent();
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
       setUser(null);
-      setToken(null);
-      localStorage.removeItem('tek_student_user');
-      localStorage.removeItem('tek_student_token');
     }
-  }, [token]);
+  }, []);
 
   const value = {
     user,
-    token,
     login,
     logout,
     isInitializing,

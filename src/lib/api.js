@@ -1,4 +1,13 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+let API_BASE = import.meta.env.VITE_API_BASE_URL;
+if (!API_BASE) {
+  if (import.meta.env.PROD) {
+    console.error('CRITICAL: VITE_API_BASE_URL environment variable is missing in production!');
+    // Prevents silently calling localhost in production
+    API_BASE = '/api/v1'; // Fallback to relative path which is safer than localhost
+  } else {
+    API_BASE = 'http://localhost:8000/api/v1';
+  }
+}
 
 /**
  * Helper to make API requests with credentials (cookies) included.
@@ -6,36 +15,24 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api
 async function fetchApi(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
   
-  // Dynamically get the token based on current route
-  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
-  const token = isAdminRoute 
-    ? localStorage.getItem('tek_admin_token') 
-    : localStorage.getItem('tek_student_token');
-  
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
   const response = await fetch(url, {
     ...options,
     headers,
-    credentials: 'omit',
+    credentials: 'include',
   });
 
   if (!response.ok) {
     if (response.status === 401) {
+      // Dynamically dispatch based on current route
+      const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
       if (isAdminRoute) {
-        localStorage.removeItem('tek_admin_token');
-        localStorage.removeItem('tek_admin_user');
         window.dispatchEvent(new Event('auth:unauthorized'));
       } else {
-        localStorage.removeItem('tek_student_token');
-        localStorage.removeItem('tek_student_user');
         window.dispatchEvent(new Event('auth:student_unauthorized'));
       }
     }
@@ -62,6 +59,15 @@ export async function loginAdmin(credentials) {
  */
 export async function logoutAdmin() {
   return fetchApi(`/auth/logout`, {
+    method: 'POST',
+  });
+}
+
+/**
+ * Refresh auth token for any user (relies on httpOnly cookie)
+ */
+export async function refreshAuthToken() {
+  return fetchApi(`/auth/refresh-token`, {
     method: 'POST',
   });
 }

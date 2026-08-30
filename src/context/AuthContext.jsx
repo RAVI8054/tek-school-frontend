@@ -1,46 +1,51 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { loginAdmin as apiLoginAdmin, logoutAdmin as apiLogoutAdmin } from '../lib/api.js';
+import { loginAdmin as apiLoginAdmin, logoutAdmin as apiLogoutAdmin, refreshAuthToken } from '../lib/api.js';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem('tek_admin_user');
-    if (storedUser) {
-      try { return JSON.parse(storedUser); } catch { return null; }
-    }
-    return null;
-  });
-  const [token, setToken] = useState(() => localStorage.getItem('tek_admin_token'));
-  const [isInitializing] = useState(false); // No longer needed since localStorage is synchronous
+  const [user, setUser] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
-  // Initialize from localStorage on mount
+  // Initialize from cookie on mount
   useEffect(() => {
+    let mounted = true;
+    
+    const initAuth = async () => {
+      try {
+        const res = await refreshAuthToken();
+        // Check if the restored session is actually an admin/staff session
+        if (mounted && res?.data?.user && res.data.user.role !== 'student') {
+          setUser(res.data.user);
+        }
+      } catch {
+        // Expected if no cookie or expired cookie, ignore
+      } finally {
+        if (mounted) setIsInitializing(false);
+      }
+    };
+    
+    initAuth();
+
     // Listen for 401 from API
     const handleUnauthorized = () => {
       setUser(null);
-      setToken(null);
     };
     window.addEventListener('auth:unauthorized', handleUnauthorized);
     
-    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    return () => {
+      mounted = false;
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
   }, []);
 
   const login = useCallback(async (email, password) => {
     try {
-      // Calls the backend /auth/login endpoint (without clientType to reject students)
       const res = await apiLoginAdmin({ email, password });
       
       const userData = res.data.user;
-      const authToken = res.token;
 
-      // Save to state
       setUser(userData);
-      setToken(authToken);
-
-      // Save to localStorage
-      localStorage.setItem('tek_admin_user', JSON.stringify(userData));
-      localStorage.setItem('tek_admin_token', authToken);
 
       return { success: true };
     } catch (error) {
@@ -51,25 +56,16 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     try {
-      if (token) {
-        await apiLogoutAdmin();
-      }
+      await apiLogoutAdmin();
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
       setUser(null);
-      setToken(null);
-      localStorage.removeItem('tek_admin_user');
-      localStorage.removeItem('tek_admin_token');
     }
-  }, [token]);
-
-  // Make token available globally to api.js (via a getter if needed, but we can also just read localStorage directly there)
-  // We'll read from localStorage directly in api.js to avoid circular dependencies.
+  }, []);
 
   const value = {
     user,
-    token,
     login,
     logout,
     isInitializing,
