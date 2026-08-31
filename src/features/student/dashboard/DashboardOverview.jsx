@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useStudentAuth } from "../../context/StudentAuthContext.jsx";
+import { useStudentAuth } from "../../../context/StudentAuthContext.jsx";
 import {
   CLASSES,
   ASSIGNMENTS,
@@ -11,8 +11,8 @@ import {
   GAMIFICATION,
   formatDate,
   relativeDay } from
-"../../lib/dashboard-data";
-import { openAction } from "../../lib/action-bus";
+"../../../lib/dashboard-data";
+import { openAction } from "../../../lib/action-bus";
 import {
   Video,
   ArrowUpRight,

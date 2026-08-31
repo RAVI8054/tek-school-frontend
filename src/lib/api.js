@@ -63,13 +63,21 @@ export async function logoutAdmin() {
   });
 }
 
+let refreshPromise = null;
+
 /**
  * Refresh auth token for any user (relies on httpOnly cookie)
  */
 export async function refreshAuthToken() {
-  return fetchApi(`/auth/refresh-token`, {
+  if (refreshPromise) return refreshPromise;
+  
+  refreshPromise = fetchApi(`/auth/refresh-token`, {
     method: 'POST',
+  }).finally(() => {
+    refreshPromise = null;
   });
+  
+  return refreshPromise;
 }
 
 /**
@@ -224,10 +232,22 @@ export async function deleteAdminCommunityMessage(messageId) {
   });
 }
 
-export async function blockAdminCommunityUser(userId) {
+export async function blockAdminCommunityUser(userId, note = '') {
   return fetchApi(`/admin/community/users/block`, {
+    method: 'POST',
+    body: JSON.stringify({ userId, note })
+  });
+}
+
+export async function getBlockedStudents() {
+  return fetchApi(`/admin/community/users/blocked`);
+}
+
+export async function unblockAdminCommunityUser(userId) {
+  return fetchApi(`/admin/community/users/unblock`, {
     method: 'POST',
     body: JSON.stringify({ userId })
   });
 }
+
 

@@ -32,8 +32,9 @@ import { TekCampusEnquiryPage } from './features/admin/enquiry/TekCampusEnquiryP
 import { ContentPage } from './features/admin/ContentPage.jsx';
 import { AssignmentsPage } from './features/admin/AssignmentsPage.jsx';
 import { AdminCommunityPage } from './features/admin/community/AdminCommunityPage.jsx';
+import { BlockedStudentsPage } from './features/admin/community/BlockedStudentsPage.jsx';
 import { DashboardShell } from './components/dashboard/DashboardShell.jsx';
-import { DashboardOverview } from './features/dashboard/DashboardOverview.jsx';
+import { DashboardOverview } from './features/student/dashboard/DashboardOverview.jsx';
 import { AdminSettingsPage } from './features/admin/settings/AdminSettingsPage.jsx';
 // Student Dashboard
 import LearningDashboard from './features/student/learning/LearningDashboard.jsx';
@@ -100,6 +101,7 @@ function App() {
         <Route path="studio" element={<StudioPage />} />
         <Route path="marketing" element={<Placeholder title="Campaigns" />} />
         <Route path="community" element={<AdminCommunityPage />} />
+        <Route path="community/blocked" element={<BlockedStudentsPage />} />
         <Route path="finance" element={<FinancePage />} />
         <Route path="settings" element={<AdminSettingsPage />} />
       </Route>
