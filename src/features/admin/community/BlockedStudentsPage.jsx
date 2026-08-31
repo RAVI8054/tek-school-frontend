@@ -1,10 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   ShieldOff,
   ShieldCheck,
-  RefreshCw,
   Search,
 } from 'lucide-react';
 import { AdminShell } from '../../../components/admin/AdminShell.jsx';
@@ -71,31 +70,27 @@ export function BlockedStudentsPage() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [unblockTarget, setUnblockTarget] = useState(null);
   const [unblocking, setUnblocking] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const fetchBlocked = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    try {
-      const res = await getBlockedStudents();
-      if (res.status === 'success') {
-        setUsers(res.data.users);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to load blocked students');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
-
   useEffect(() => {
+    // eslint-disable-next-line react/set-state-in-effect
+    const fetchBlocked = async () => {
+      try {
+        const res = await getBlockedStudents();
+        if (res.status === 'success') {
+          setUsers(res.data.users);
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to load blocked students');
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchBlocked();
-  }, [fetchBlocked]);
+  }, []);
 
   const handleUnblock = async () => {
     if (!unblockTarget) return;
