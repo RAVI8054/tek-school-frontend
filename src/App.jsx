@@ -5,6 +5,7 @@ import { ContactPage } from './features/landing/ContactPage.jsx';
 import { CoursesPage } from './features/landing/CoursesPage.jsx';
 
 import { AdminLoginPage } from './features/auth/AdminLoginPage.jsx';
+import { ResetPasswordPage } from './features/auth/ResetPasswordPage.jsx';
 import { SignInPanel } from './components/layout/SignInPanel.jsx';
 import { ProtectedRoute } from './components/layout/ProtectedRoute.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
@@ -91,6 +92,8 @@ function App() {
       <Route path="/campus/school" element={<CampusSchool />} />
       <Route path="/campus/ai-lab" element={<CampusAILab />} />
       
+      <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+
       {/* Admin Login Route (Unprotected) */}
       <Route path="/admin/login" element={<AdminLoginPage />} />
 

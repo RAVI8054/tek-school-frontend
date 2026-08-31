@@ -60,15 +60,21 @@ export function SignInPanel() {
     }
   }
 
-  function submitForgot(e) {
+  async function submitForgot(e) {
     e.preventDefault();
     setError(null);
-    if (!/^\\S+@\\S+\\.\\S+$/.test(resetEmail)) return setError("Enter a valid email.");
+    if (!/^\S+@\S+\.\S+$/.test(resetEmail)) return setError("Enter a valid email.");
+    
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const { forgotPassword } = await import("../../lib/api.js");
+      await forgotPassword(resetEmail);
       setMode("forgot-sent");
-    }, 600);
+    } catch (err) {
+      setError(err.message || "Failed to send reset link. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

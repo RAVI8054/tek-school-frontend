@@ -100,6 +100,26 @@ export async function logoutStudent() {
 }
 
 /**
+ * Forgot password (Student)
+ */
+export async function forgotPassword(email) {
+  return fetchApi(`/auth/forgot-password`, {
+    method: 'POST',
+    body: JSON.stringify({ email })
+  });
+}
+
+/**
+ * Reset password (Student)
+ */
+export async function resetPassword(token, password, passwordConfirm) {
+  return fetchApi(`/auth/reset-password`, {
+    method: 'PATCH',
+    body: JSON.stringify({ token, password, passwordConfirm })
+  });
+}
+
+/**
  * Register a new student (Admin only)
  */
 export async function registerStudent(data) {
