@@ -11,6 +11,17 @@ export function InstructorsPage() {
   const [rows, setRows] = useState([]);
   const [editing, setEditing] = useState(null);
   const [showNew, setShowNew] = useState(false);
+  const [newLoading, setNewLoading] = useState(false);
+  const [newError, setNewError] = useState(null);
+
+  useEffect(() => {
+    if (showNew) {
+      // eslint-disable-next-line react/set-state-in-effect
+      setNewError(null);
+      // eslint-disable-next-line react/set-state-in-effect
+      setNewLoading(false);
+    }
+  }, [showNew]);
 
   useEffect(() => {
     getInstructors()
@@ -91,9 +102,11 @@ export function InstructorsPage() {
           const name = String(fd.get("name") ?? "").trim();
           const email = String(fd.get("email") ?? "").trim();
           const bio = String(fd.get("bio") ?? "").trim();
-          if (name.length < 2) return pushToast("Name is required");
-          if (!/^\S+@\S+\.\S+$/.test(email)) return pushToast("Valid email is required");
+          if (name.length < 2) return setNewError("Name is required");
+          if (!/^\S+@\S+\.\S+$/.test(email)) return setNewError("Valid email is required");
 
+          setNewError(null);
+          setNewLoading(true);
           try {
             const res = await registerInstructor({ name, email, bio });
             const user = res.data?.user || {};
@@ -111,9 +124,12 @@ export function InstructorsPage() {
             setShowNew(false);
             pushToast(`Added ${name}. Password sent to email.`);
           } catch (err) {
-            pushToast(err.message || 'Failed to add instructor');
+            setNewError(err.message || 'Failed to add instructor');
+          } finally {
+            setNewLoading(false);
           }
         }} className="space-y-3">
+          {newError && <div className="rounded-lg bg-coral/10 p-3 text-sm font-medium text-coral">{newError}</div>}
           <label className="block text-[10px] font-semibold uppercase text-slate-500">Name
             <input name="name" required className="mt-1 w-full rounded-lg bg-slate-50 px-3 py-2 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[var(--accent-blue-deep)]/30" />
           </label>
@@ -123,7 +139,7 @@ export function InstructorsPage() {
           <label className="block text-[10px] font-semibold uppercase text-slate-500">Short bio
             <textarea name="bio" rows={3} className="mt-1 w-full rounded-lg bg-slate-50 px-3 py-2 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[var(--accent-blue-deep)]/30" />
           </label>
-          <div className="flex justify-end gap-2"><GhostBtn type="button" onClick={() => setShowNew(false)}>Cancel</GhostBtn><PrimaryBtn type="submit">Add instructor</PrimaryBtn></div>
+          <div className="flex justify-end gap-2"><GhostBtn disabled={newLoading} type="button" onClick={() => setShowNew(false)}>Cancel</GhostBtn><PrimaryBtn type="submit" loading={newLoading}>Add instructor</PrimaryBtn></div>
         </form>
       </Modal>
     </AdminShell>

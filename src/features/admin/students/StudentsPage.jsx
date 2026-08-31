@@ -45,7 +45,7 @@ export function StudentsPage() {
   };
 
   const createStudent = async (form) => {
-    try {
+    
       const res = await registerStudent({
         name: form.name,
         email: form.email,
@@ -67,9 +67,6 @@ export function StudentsPage() {
       setStudents((arr) => [s, ...arr]);
       setShowNew(false);
       pushToast(`Added ${s.name}. Check email for credentials.`);
-    } catch (err) {
-      pushToast(err.message || 'Failed to create student');
-    }
   };
 
   return (
@@ -201,10 +198,22 @@ function StudentEditModal({ open, student, onClose, onSave }) {
 }
 
 function StudentCreateModal({ open, onClose, onCreate }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (open) {
+      // eslint-disable-next-line react/set-state-in-effect
+      setError(null);
+      // eslint-disable-next-line react/set-state-in-effect
+      setLoading(false);
+    }
+  }, [open]);
+
   return (
     <Modal open={open} onClose={onClose} title="Add a new student">
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           const fd = new FormData(e.currentTarget);
           const name = String(fd.get('name') ?? '').trim();
@@ -212,12 +221,22 @@ function StudentCreateModal({ open, onClose, onCreate }) {
           const track = String(fd.get('track') ?? TRACKS[0]);
           const cohort = String(fd.get('cohort') ?? COHORTS[0].name);
           const city = String(fd.get('city') ?? '').trim();
-          if (name.length < 2) return pushToast('Name is required');
-          if (!/^\S+@\S+\.\S+$/.test(email)) return pushToast('Valid email is required');
-          onCreate({ name, email, track, cohort, city });
+          if (name.length < 2) return setError('Name is required');
+          if (!/^\S+@\S+\.\S+$/.test(email)) return setError('Valid email is required');
+          
+          setError(null);
+          setLoading(true);
+          try {
+            await onCreate({ name, email, track, cohort, city });
+          } catch (err) {
+            setError(err.message || 'Failed to add student');
+          } finally {
+            setLoading(false);
+          }
         }}
         className="space-y-3 p-4"
       >
+        {error && <div className="rounded-lg bg-coral/10 p-3 text-sm font-medium text-coral">{error}</div>}
         <FormField name="name" label="Full name" placeholder="e.g. Aarav Sharma" />
         <FormField name="email" label="Email" type="email" placeholder="name@student.tek.school" />
         <div className="grid grid-cols-2 gap-2">
@@ -226,8 +245,8 @@ function StudentCreateModal({ open, onClose, onCreate }) {
         </div>
         <FormField name="city" label="City" placeholder="e.g. Bengaluru" />
         <div className="flex justify-end gap-2 pt-2">
-          <GhostBtn onClick={onClose}>Cancel</GhostBtn>
-          <PrimaryBtn type="submit">Add student</PrimaryBtn>
+          <GhostBtn disabled={loading} onClick={onClose}>Cancel</GhostBtn>
+          <PrimaryBtn type="submit" loading={loading}>Add student</PrimaryBtn>
         </div>
       </form>
     </Modal>

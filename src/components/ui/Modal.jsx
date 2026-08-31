@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 
 let openCount = 0;
 function bump(n) {
@@ -75,21 +75,27 @@ export function Modal({
   );
 }
 
-export function PrimaryBtn({ children, onClick, type = 'button' }) {
+export function PrimaryBtn({ children, onClick, type = 'button', loading, disabled }) {
   return (
     <button
       type={type}
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[var(--accent-blue-deep)] to-[var(--accent-blue)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_25px_-12px_var(--accent-blue-deep)] hover:opacity-95"
+      disabled={loading || disabled}
+      className="inline-flex min-w-[120px] justify-center items-center gap-1.5 rounded-full bg-gradient-to-r from-[var(--accent-blue-deep)] to-[var(--accent-blue)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_25px_-12px_var(--accent-blue-deep)] transition-all hover:opacity-95 disabled:opacity-60 disabled:cursor-not-allowed"
     >
-      {children}
+      {loading ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Wait...
+        </>
+      ) : children}
     </button>
   );
 }
 
-export function GhostBtn({ children, onClick }) {
+export function GhostBtn({ children, onClick, disabled }) {
   return (
-    <button onClick={onClick} className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+    <button disabled={disabled} onClick={onClick} className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed">
       {children}
     </button>
   );

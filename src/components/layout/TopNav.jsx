@@ -91,7 +91,9 @@ export function TopNav() {
       <nav className={`flex items-center justify-between gap-4 transition-all duration-300 ${scrolled ? 'mx-auto max-w-[1360px] rounded-full bg-white border border-border px-4 py-2 md:px-6 md:py-2.5 shadow-[0_6px_18px_-12px_rgba(30,27,75,0.35)]' : 'px-4 py-3 md:px-8 md:py-5'}`}>
 
         <Link to="/" className="flex items-center shrink-0 select-none" aria-label="TekSchool">
-          <LogoLockup className={scrolled ? 'h-7' : 'h-8'} />
+          <div className={`inline-flex items-center rounded-2xl bg-white/90 backdrop-blur-md border border-slate-200/50 shadow-sm ${scrolled ? 'px-3 py-1.5' : 'px-4 py-2.5'}`}>
+            <LogoLockup className={scrolled ? 'h-6' : 'h-7'} />
+          </div>
         </Link>
 
         {/* Desktop nav */}
