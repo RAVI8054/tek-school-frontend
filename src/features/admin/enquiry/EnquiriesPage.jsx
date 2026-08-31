@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { AdminShell } from "../../components/admin/AdminShell.jsx";
+import { AdminShell } from "../../../components/admin/AdminShell.jsx";
 
 const TITLE_MAP = {
   admission:  'Admission Enquiries',
@@ -19,4 +19,3 @@ export function EnquiriesPage() {
     </AdminShell>
   );
 }
-

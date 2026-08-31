@@ -1,15 +1,26 @@
-import { useState } from 'react';
-import { AdminShell } from '../../components/admin/AdminShell.jsx';
-import { AdminTable } from '../../components/admin/AdminTable.jsx';
-import { INSTRUCTORS } from '../../lib/adminData.js';
+import { useState, useEffect } from 'react';
+import { AdminShell } from '../../../components/admin/AdminShell.jsx';
+import { AdminTable } from '../../../components/admin/AdminTable.jsx';
+
 import { Star, Pencil, Trash2, Mail, Plus } from 'lucide-react';
-import { pushToast } from '../../lib/actionBus.js';
-import { Modal, PrimaryBtn, GhostBtn } from '../../components/ui/Modal.jsx';
+import { pushToast } from '../../../lib/actionBus.js';
+import { Modal, PrimaryBtn, GhostBtn } from '../../../components/ui/Modal.jsx';
+import { getInstructors, registerInstructor } from '../../../lib/api.js';
 
 export function InstructorsPage() {
-  const [rows, setRows] = useState(INSTRUCTORS);
+  const [rows, setRows] = useState([]);
   const [editing, setEditing] = useState(null);
   const [showNew, setShowNew] = useState(false);
+
+  useEffect(() => {
+    getInstructors()
+      .then((res) => {
+        if (res.data?.instructors) {
+          setRows(res.data.instructors);
+        }
+      })
+      .catch((err) => pushToast('Failed to fetch instructors: ' + err.message));
+  }, []);
 
   return (
     <AdminShell title="Instructors" actions={
@@ -30,7 +41,15 @@ export function InstructorsPage() {
             confirm: { title: "Remove instructor?", message: (r) => <>Removing <b>{r.name}</b> from all assigned cohorts.</> } },
         ]}
         columns={[
-          { key: "name", label: "Name", render: (r) => <b>{r.name}</b> },
+          { key: "name", label: "Name", render: (r) => (
+            <div className="flex items-center gap-2">
+              <div className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-[#1E1B4B] to-[#2D5FA8] text-[10px] font-bold text-white">{r.name.split(' ').map((n) => n[0]).slice(0,2).join('').toUpperCase()}</div>
+              <div className="min-w-0">
+                <p className="font-semibold">{r.name}</p>
+                <p className="text-[10px] text-slate-400">{r.email || 'no-email@tekschool.in'}</p>
+              </div>
+            </div>
+          ) },
           { key: "track", label: "Track" },
           { key: "cohorts", label: "Cohorts", render: (r) => r.cohorts.join(", ") },
           { key: "upcomingSessions", label: "Upcoming" },
@@ -66,23 +85,45 @@ export function InstructorsPage() {
       </Modal>
 
       <Modal open={showNew} onClose={() => setShowNew(false)} title="Add an instructor">
-        <form onSubmit={(e) => {
+        <form onSubmit={async (e) => {
           e.preventDefault();
           const fd = new FormData(e.currentTarget);
           const name = String(fd.get("name") ?? "").trim();
+          const email = String(fd.get("email") ?? "").trim();
           const bio = String(fd.get("bio") ?? "").trim();
           if (name.length < 2) return pushToast("Name is required");
-          const inst = { id: "ins_" + Date.now(), name, track: "AI Engineering", cohorts: [], upcomingSessions: 0, rating: 5, bio };
-          setRows((arr) => [inst, ...arr]);
-          setShowNew(false); pushToast(`Added ${name}`);
+          if (!/^\S+@\S+\.\S+$/.test(email)) return pushToast("Valid email is required");
+
+          try {
+            const res = await registerInstructor({ name, email, bio });
+            const user = res.data?.user || {};
+            const inst = {
+              id: user.id || "ins_" + Date.now(),
+              name: user.name || name,
+              email: user.email || email,
+              track: "Unassigned",
+              cohorts: [],
+              upcomingSessions: 0,
+              rating: 5,
+              bio
+            };
+            setRows((arr) => [inst, ...arr]);
+            setShowNew(false);
+            pushToast(`Added ${name}. Password sent to email.`);
+          } catch (err) {
+            pushToast(err.message || 'Failed to add instructor');
+          }
         }} className="space-y-3">
           <label className="block text-[10px] font-semibold uppercase text-slate-500">Name
             <input name="name" required className="mt-1 w-full rounded-lg bg-slate-50 px-3 py-2 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[var(--accent-blue-deep)]/30" />
           </label>
+          <label className="block text-[10px] font-semibold uppercase text-slate-500">Email
+            <input name="email" type="email" required className="mt-1 w-full rounded-lg bg-slate-50 px-3 py-2 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[var(--accent-blue-deep)]/30" />
+          </label>
           <label className="block text-[10px] font-semibold uppercase text-slate-500">Short bio
             <textarea name="bio" rows={3} className="mt-1 w-full rounded-lg bg-slate-50 px-3 py-2 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[var(--accent-blue-deep)]/30" />
           </label>
-          <div className="flex justify-end gap-2"><GhostBtn onClick={() => setShowNew(false)}>Cancel</GhostBtn><PrimaryBtn type="submit">Add instructor</PrimaryBtn></div>
+          <div className="flex justify-end gap-2"><GhostBtn type="button" onClick={() => setShowNew(false)}>Cancel</GhostBtn><PrimaryBtn type="submit">Add instructor</PrimaryBtn></div>
         </form>
       </Modal>
     </AdminShell>

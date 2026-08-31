@@ -100,6 +100,40 @@ export async function logoutStudent() {
 }
 
 /**
+ * Register a new student (Admin only)
+ */
+export async function registerStudent(data) {
+  return fetchApi(`/auth/student`, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+/**
+ * Fetch all students (Admin only)
+ */
+export async function getStudents() {
+  return fetchApi(`/auth/student`);
+}
+
+/**
+ * Register a new instructor (Admin only)
+ */
+export async function registerInstructor(data) {
+  return fetchApi(`/auth/instructor`, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+/**
+ * Fetch all instructors (Admin only)
+ */
+export async function getInstructors() {
+  return fetchApi(`/auth/instructor`);
+}
+
+/**
  * Fetch enquiries with filtering.
  * @param {Object} filters - { category, inquiry_type, status, search, page, limit }
  */

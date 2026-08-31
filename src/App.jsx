@@ -18,15 +18,28 @@ import { CampusAILab } from './features/landing/CampusAILab.jsx';
 
 // Dashboards
 import { AdminDashboard } from './features/admin/AdminDashboard.jsx';
-import { StudentsPage } from './features/admin/StudentsPage.jsx';
+import { StudentsPage } from './features/admin/students/StudentsPage.jsx';
 import { CohortsPage } from './features/admin/CohortsPage.jsx';
-import { InstructorsPage } from './features/admin/InstructorsPage.jsx';
+import { InstructorsPage } from './features/admin/instructors/InstructorsPage.jsx';
 import { FinancePage } from './features/admin/FinancePage.jsx';
 import { StudioPage } from './features/admin/StudioPage.jsx';
+
+// Instructor Portal
+import { InstructorDashboard } from './features/instructor/dashboard/InstructorDashboard.jsx';
+import { InstructorCohortsPage } from './features/instructor/cohorts/InstructorCohortsPage.jsx';
+import { InstructorAssignmentsPage } from './features/instructor/assignments/InstructorAssignmentsPage.jsx';
+import { InstructorCurriculumPage } from './features/instructor/curriculum/InstructorCurriculumPage.jsx';
+
+// Finance Portal
+import { FinanceDashboard } from './features/finance/dashboard/FinanceDashboard.jsx';
+import { FinanceManagementPage } from './features/finance/management/FinanceManagementPage.jsx';
+import { FinanceSettingsPage } from './features/finance/settings/FinanceSettingsPage.jsx';
+import { FinanceAuditLogsPage } from './features/finance/audit/FinanceAuditLogsPage.jsx';
+
 import { PagesPage } from './features/admin/PagesPage.jsx';
 import { OutreachPage } from './features/admin/OutreachPage.jsx';
 import { PlacementsPage } from './features/admin/PlacementsPage.jsx';
-import { EnquiriesPage } from './features/admin/EnquiriesPage.jsx';
+import { EnquiriesPage } from './features/admin/enquiry/EnquiriesPage.jsx';
 import { AdmissionEnquiryPage } from './features/admin/enquiry/AdmissionEnquiryPage.jsx';
 import { TekCampusEnquiryPage } from './features/admin/enquiry/TekCampusEnquiryPage.jsx';
 import { ContentPage } from './features/admin/ContentPage.jsx';
@@ -82,7 +95,7 @@ function App() {
       <Route path="/admin/login" element={<AdminLoginPage />} />
 
       {/* Admin Routes - Protected for staff roles */}
-      <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'admissions', 'instructor', 'finance']} />}>
+      <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'admissions']} />}>
         <Route index element={<AdminDashboard />} />
         <Route path="students" element={<StudentsPage />} />
         {/* Fill other admin routes with placeholders for now */}
@@ -104,6 +117,22 @@ function App() {
         <Route path="community/blocked" element={<BlockedStudentsPage />} />
         <Route path="finance" element={<FinancePage />} />
         <Route path="settings" element={<AdminSettingsPage />} />
+      </Route>
+
+      {/* Instructor Routes */}
+      <Route path="/instructor" element={<ProtectedRoute allowedRoles={['instructor', 'admin']} />}>
+        <Route index element={<InstructorDashboard />} />
+        <Route path="cohorts" element={<InstructorCohortsPage />} />
+        <Route path="assignments" element={<InstructorAssignmentsPage />} />
+        <Route path="curriculum" element={<InstructorCurriculumPage />} />
+      </Route>
+
+      {/* Finance Routes */}
+      <Route path="/finance" element={<ProtectedRoute allowedRoles={['finance', 'admin']} />}>
+        <Route index element={<FinanceDashboard />} />
+        <Route path="management" element={<FinanceManagementPage />} />
+        <Route path="settings" element={<FinanceSettingsPage />} />
+        <Route path="audit-logs" element={<FinanceAuditLogsPage />} />
       </Route>
 
       {/* Student Dashboard Routes - DashboardShell uses an Outlet */}

@@ -47,7 +47,7 @@ export function AuthProvider({ children }) {
 
       setUser(userData);
 
-      return { success: true };
+      return { success: true, user: userData };
     } catch (error) {
       console.error('Login failed:', error);
       return { success: false, error: error.message || 'Login failed' };

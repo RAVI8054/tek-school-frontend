@@ -1,20 +1,33 @@
-import { useState } from 'react';
-import { AdminShell } from '../../components/admin/AdminShell.jsx';
-import { AdminTable } from '../../components/admin/AdminTable.jsx';
-import { Drawer } from '../../components/admin/Drawer.jsx';
-import { STUDENTS, TRACKS, COHORTS } from '../../lib/adminData.js';
+import { useState, useEffect } from 'react';
+import { AdminShell } from '../../../components/admin/AdminShell.jsx';
+import { AdminTable } from '../../../components/admin/AdminTable.jsx';
+import { Drawer } from '../../../components/admin/Drawer.jsx';
+import { TRACKS, COHORTS } from '../../../lib/adminData.js';
 import { AlertTriangle, MessageCircle, Flag, Pencil, Trash2, UserPlus } from 'lucide-react';
-import { pushToast } from '../../lib/actionBus.js';
-import { ActionModals } from '../../components/ActionModals.jsx';
-import { Modal, PrimaryBtn, GhostBtn } from '../../components/ui/Modal.jsx';
+import { pushToast } from '../../../lib/actionBus.js';
+import { ActionModals } from '../../../components/ActionModals.jsx';
+import { Modal, PrimaryBtn, GhostBtn } from '../../../components/ui/Modal.jsx';
+import { registerStudent, getStudents } from '../../../lib/api.js';
 
 export function StudentsPage() {
-  const [students, setStudents] = useState(STUDENTS);
+  const [students, setStudents] = useState([]);
   const [track, setTrack] = useState('all');
   const [risk, setRisk] = useState(false);
   const [active, setActive] = useState(null);
   const [editing, setEditing] = useState(null);
   const [showNew, setShowNew] = useState(false);
+
+  useEffect(() => {
+    getStudents()
+      .then((res) => {
+        if (res.data?.students) {
+          setStudents(res.data.students);
+        }
+      })
+      .catch((err) => {
+        pushToast('Failed to fetch students: ' + err.message);
+      });
+  }, []);
 
   const rows = students.filter((s) => (track === 'all' || s.track === track) && (!risk || s.atRisk));
 
@@ -31,17 +44,32 @@ export function StudentsPage() {
     setEditing(null);
   };
 
-  const createStudent = (form) => {
-    const s = {
-      id: 'stu_' + Date.now(),
-      name: form.name, email: form.email, track: form.track, cohort: form.cohort,
-      enrolledAt: new Date().toISOString().slice(0, 10),
-      attendance: 100, completion: 0, placement: 'Not started', atRisk: false,
-      phone: '+91 90000 00000', city: 'Bengaluru',
-    };
-    setStudents((arr) => [s, ...arr]);
-    setShowNew(false);
-    pushToast(`Added ${s.name} to ${s.cohort}`);
+  const createStudent = async (form) => {
+    try {
+      const res = await registerStudent({
+        name: form.name,
+        email: form.email,
+        track: form.track,
+        cohort: form.cohort,
+        city: form.city,
+      });
+      const user = res.data?.user || {};
+      const s = {
+        id: user.id || 'stu_' + Date.now(),
+        name: user.name || form.name, 
+        email: user.email || form.email, 
+        track: form.track, 
+        cohort: form.cohort,
+        enrolledAt: (user.createdAt ? new Date(user.createdAt) : new Date()).toISOString().slice(0, 10),
+        attendance: 100, completion: 0, placement: 'Not started', atRisk: false,
+        phone: '+91 90000 00000', city: form.city || 'Bengaluru',
+      };
+      setStudents((arr) => [s, ...arr]);
+      setShowNew(false);
+      pushToast(`Added ${s.name}. Check email for credentials.`);
+    } catch (err) {
+      pushToast(err.message || 'Failed to create student');
+    }
   };
 
   return (
@@ -151,7 +179,7 @@ function StudentEditModal({ open, student, onClose, onSave }) {
             const attendance = Math.max(0, Math.min(100, Number(fd.get('attendance') ?? 0)));
             const completion = Math.max(0, Math.min(100, Number(fd.get('completion') ?? 0)));
             if (name.length < 2) return pushToast('Name is too short');
-            if (!/^\\S+@\\S+\\.\\S+$/.test(email)) return pushToast('Enter a valid email');
+            if (!/^\S+@\S+\.\S+$/.test(email)) return pushToast('Enter a valid email');
             onSave({ name, email, attendance, completion });
           }}
           className="space-y-3 p-4"
@@ -183,9 +211,10 @@ function StudentCreateModal({ open, onClose, onCreate }) {
           const email = String(fd.get('email') ?? '').trim();
           const track = String(fd.get('track') ?? TRACKS[0]);
           const cohort = String(fd.get('cohort') ?? COHORTS[0].name);
+          const city = String(fd.get('city') ?? '').trim();
           if (name.length < 2) return pushToast('Name is required');
-          if (!/^\\S+@\\S+\\.\\S+$/.test(email)) return pushToast('Valid email is required');
-          onCreate({ name, email, track, cohort });
+          if (!/^\S+@\S+\.\S+$/.test(email)) return pushToast('Valid email is required');
+          onCreate({ name, email, track, cohort, city });
         }}
         className="space-y-3 p-4"
       >
@@ -195,6 +224,7 @@ function StudentCreateModal({ open, onClose, onCreate }) {
           <SelectField name="track" label="Track" options={TRACKS.map((t) => ({ value: t, label: t }))} />
           <SelectField name="cohort" label="Cohort" options={COHORTS.map((c) => ({ value: c.name, label: c.name }))} />
         </div>
+        <FormField name="city" label="City" placeholder="e.g. Bengaluru" />
         <div className="flex justify-end gap-2 pt-2">
           <GhostBtn onClick={onClose}>Cancel</GhostBtn>
           <PrimaryBtn type="submit">Add student</PrimaryBtn>

@@ -28,7 +28,16 @@ export function AdminLoginPage() {
     const result = await login(email, password);
     
     if (result.success) {
-      navigate("/admin");
+      const role = result.user?.role;
+      if (role === 'instructor') {
+        navigate("/instructor");
+      } else if (role === 'finance') {
+        navigate("/finance");
+      } else if (role === 'admissions') {
+        navigate("/admin/enquiries");
+      } else {
+        navigate("/admin");
+      }
     } else {
       setError(result.error);
       setBusy(false);
@@ -36,25 +45,28 @@ export function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="relative min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 overflow-hidden">
+      {/* Blurred Background Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 rounded-full bg-blue-400/20 blur-3xl" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[30rem] h-[30rem] rounded-full bg-purple-500/20 blur-3xl" />
+      <div className="absolute top-[20%] right-[10%] w-72 h-72 rounded-full bg-cyan-400/20 blur-3xl" />
+
+      <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="inline-flex items-center rounded-2xl bg-[#1E1B4B] px-4 py-3 shadow-lg">
-            {/* Using a bright/white version of the logo if possible, or just the default. 
-                LogoLockup usually adapts if it's an SVG. */}
-            <LogoLockup className="h-8 w-auto text-white" />
+          <div className="inline-flex items-center rounded-2xl bg-white/80 backdrop-blur-md border border-white/50 px-4 py-3 shadow-sm">
+            <LogoLockup className="h-8 w-auto" />
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Admin Portal
+          Staff Portal
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Sign in to manage Tek School operations
+          Sign in to access your dashboard
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-3xl sm:px-10 border border-slate-100">
+      <div className="relative z-10 mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white/80 backdrop-blur-md py-8 px-4 shadow-xl sm:rounded-3xl sm:px-10 border border-white/50">
           <form onSubmit={onSubmit} className="space-y-5">
             <label className="block">
               <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
