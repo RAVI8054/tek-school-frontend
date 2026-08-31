@@ -7,7 +7,7 @@ import { AlertTriangle, MessageCircle, Flag, Pencil, Trash2, UserPlus } from 'lu
 import { pushToast } from '../../../lib/actionBus.js';
 import { ActionModals } from '../../../components/ActionModals.jsx';
 import { Modal, PrimaryBtn, GhostBtn } from '../../../components/ui/Modal.jsx';
-import { registerStudent, getStudents, updateStudentAdmin } from '../../../lib/api.js';
+import { registerStudent, getStudents, updateStudentAdmin, deleteStudentAdmin } from '../../../lib/api.js';
 
 export function StudentsPage() {
   const [students, setStudents] = useState([]);
@@ -31,9 +31,14 @@ export function StudentsPage() {
 
   const rows = students.filter((s) => (track === 'all' || s.track === track) && (!risk || s.atRisk));
 
-  const removeStudent = (id) => {
-    setStudents((arr) => arr.filter((s) => s.id !== id));
-    pushToast('Student removed');
+  const removeStudent = async (id) => {
+    try {
+      await deleteStudentAdmin(id);
+      setStudents((arr) => arr.filter((s) => s.id !== id));
+      pushToast('Student removed successfully');
+    } catch (err) {
+      pushToast('Failed to remove student: ' + err.message, 'error');
+    }
   };
   const bulkDelete = (ids) => setStudents((arr) => arr.filter((s) => !ids.includes(s.id)));
 

@@ -143,6 +143,12 @@ export async function updateStudentAdmin(id, data) {
   });
 }
 
+export async function deleteStudentAdmin(id) {
+  return fetchApi(`/auth/student/${id}`, {
+    method: 'DELETE'
+  });
+}
+
 /**
  * Register a new instructor (Admin only)
  */
