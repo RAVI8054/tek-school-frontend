@@ -5,7 +5,7 @@ import { AdminTable } from '../../../components/admin/AdminTable.jsx';
 import { Star, Pencil, Trash2, Mail, Plus } from 'lucide-react';
 import { pushToast } from '../../../lib/actionBus.js';
 import { Modal, PrimaryBtn, GhostBtn } from '../../../components/ui/Modal.jsx';
-import { getInstructors, registerInstructor } from '../../../lib/api.js';
+import { getInstructors, registerInstructor, deleteInstructorAdmin } from '../../../lib/api.js';
 
 export function InstructorsPage() {
   const [rows, setRows] = useState([]);
@@ -48,7 +48,15 @@ export function InstructorsPage() {
           { label: "Message", icon: Mail, onClick: (r) => pushToast(`Opening message to ${r.name}`) },
           { label: "Edit", icon: Pencil, onClick: setEditing },
           { label: "Remove", icon: Trash2, destructive: true,
-            onClick: (r) => { setRows((arr) => arr.filter((x) => x.id !== r.id)); pushToast(`Removed ${r.name}`); },
+            onClick: async (r) => {
+              try {
+                await deleteInstructorAdmin(r.id);
+                setRows((arr) => arr.filter((x) => x.id !== r.id));
+                pushToast(`Removed ${r.name}`);
+              } catch (err) {
+                pushToast('Failed to remove: ' + err.message, 'error');
+              }
+            },
             confirm: { title: "Remove instructor?", message: (r) => <>Removing <b>{r.name}</b> from all assigned cohorts.</> } },
         ]}
         columns={[

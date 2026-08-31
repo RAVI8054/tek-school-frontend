@@ -167,6 +167,15 @@ export async function getInstructors() {
 }
 
 /**
+ * Delete an instructor (Admin only)
+ */
+export async function deleteInstructorAdmin(id) {
+  return fetchApi(`/auth/instructor/${id}`, {
+    method: 'DELETE'
+  });
+}
+
+/**
  * Fetch enquiries with filtering.
  * @param {Object} filters - { category, inquiry_type, status, search, page, limit }
  */
