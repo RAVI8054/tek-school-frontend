@@ -1,8 +1,8 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   LayoutGrid, Users, GraduationCap, ClipboardCheck, Briefcase, BookOpen, Inbox, UserSquare, Wallet, Megaphone,
-  Settings2, Shield, ChevronDown, Search, Bell, LogOut, FileEdit, Palette, Send, Sparkles, PanelLeftClose, PanelLeftOpen, ClipboardList,
+  Settings2, Shield, ChevronDown, Search, Bell, LogOut, FileEdit, Palette, Send, Sparkles, PanelLeftClose, PanelLeftOpen, ClipboardList, Menu, X,
 } from 'lucide-react';
 import { LogoLockup } from '../ui/Logo.jsx';
 import { ROLE_ACCESS, AUDIT } from '../../lib/adminData.js';
@@ -44,15 +44,180 @@ const NAV_GROUPS = [
   ] },
 ];
 
+/* ── Shared sidebar nav content (used in both desktop & mobile drawer) ─ */
+function SidebarContent({ collapsed, setCollapsed, allowed, isActive, isMobile, onNavClick, user, logout, navigate }) {
+  return (
+    <>
+      {/* Logo / brand header */}
+      <div className={`flex shrink-0 items-center border-b border-slate-100 ${collapsed && !isMobile ? 'justify-center px-2 py-3' : 'gap-2 px-5 py-4'}`}>
+        {collapsed && !isMobile ? (
+          <Link to="/" className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-[#1E1B4B] to-[#2D5FA8] text-[10px] font-black text-white" aria-label="TekSchool home">TS</Link>
+        ) : (
+          <>
+            <Link to="/" className="inline-flex"><LogoLockup className="h-7" /></Link>
+            <span className="ml-1 rounded-md bg-[#1E1B4B] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">Admin</span>
+            {isMobile && (
+              <button
+                onClick={onNavClick}
+                className="ml-auto grid h-8 w-8 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
+                aria-label="Close menu"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </>
+        )}
+      </div>
 
+      {/* Nav groups */}
+      <nav className="no-scrollbar flex-1 overflow-y-auto p-2">
+        {NAV_GROUPS.map((group) => {
+          const visible = group.items.filter((n) => allowed.has(n.key));
+          if (visible.length === 0) return null;
+          const showLabel = !collapsed || isMobile;
+          return (
+            <div key={group.label} className="mb-3">
+              {showLabel && (
+                <p className="px-3 pb-1 pt-1 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">{group.label}</p>
+              )}
+              {!showLabel && <div className="mx-3 my-2 h-px bg-slate-100 first:hidden" />}
+              {visible.map((n) => {
+                const hasChildren = !!n.children;
+                const childActive = hasChildren && n.children.some(c => isActive(c.to));
+                const active = !hasChildren && isActive(n.to);
+                const isCollapsedDesktop = collapsed && !isMobile;
 
+                if (hasChildren) {
+                  return (
+                    <div key={n.label} className="mb-0.5 group/nav">
+                      <div
+                        title={isCollapsedDesktop ? n.label : undefined}
+                        className={`group relative flex cursor-default items-center rounded-lg font-medium transition-colors ${
+                          isCollapsedDesktop ? 'mx-1 h-10 justify-center px-0' : 'gap-2.5 px-3 py-2 text-[13px]'
+                        } ${childActive ? 'text-slate-900' : 'text-slate-600'}`}
+                      >
+                        <n.icon className={`shrink-0 ${isCollapsedDesktop ? 'h-[18px] w-[18px]' : 'h-4 w-4'}`} />
+                        {!isCollapsedDesktop && <span className="flex-1 truncate">{n.label}</span>}
+                        {!isCollapsedDesktop && (
+                          <ChevronDown className={`h-3 w-3 transition-transform ${childActive ? 'rotate-180' : ''}`} />
+                        )}
+                        {isCollapsedDesktop && (
+                          <div className="invisible absolute left-full top-0 z-50 ml-2 flex flex-col gap-1 rounded-lg bg-white p-2 shadow-xl ring-1 ring-slate-200 opacity-0 transition-all group-hover/nav:visible group-hover/nav:opacity-100">
+                            <p className="mb-1 border-b border-slate-100 pb-1 px-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">{n.label}</p>
+                            {n.children.map(c => (
+                              <Link key={c.to} to={c.to} onClick={onNavClick} className={`whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium ${isActive(c.to) ? 'bg-gradient-to-r from-[#1E1B4B] to-[#2D5FA8] text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
+                                {c.label}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {!isCollapsedDesktop && (
+                        <div className="ml-5 mt-1 flex flex-col gap-0.5 border-l border-slate-200 pl-2">
+                          {n.children.map(c => {
+                            const cActive = isActive(c.to);
+                            return (
+                              <Link key={c.to} to={c.to} onClick={onNavClick} className={`block rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${cActive ? 'bg-gradient-to-r from-[#1E1B4B] to-[#2D5FA8] text-white shadow-[0_4px_12px_-6px_#1E1B4B]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}>
+                                {c.label}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={n.to}
+                    to={n.to}
+                    onClick={onNavClick}
+                    title={isCollapsedDesktop ? n.label : undefined}
+                    aria-label={n.label}
+                    className={`group relative mb-0.5 flex items-center rounded-lg font-medium transition-colors ${
+                      isCollapsedDesktop ? 'mx-1 h-10 justify-center px-0' : 'gap-2.5 px-3 py-2 text-[13px]'
+                    } ${active
+                      ? 'bg-gradient-to-r from-[#1E1B4B] to-[#2D5FA8] text-white shadow-[0_4px_12px_-6px_#1E1B4B]'
+                      : 'text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    <n.icon className={`shrink-0 ${isCollapsedDesktop ? 'h-[18px] w-[18px]' : 'h-4 w-4'}`} />
+                    {!isCollapsedDesktop && <span className="flex-1 truncate">{n.label}</span>}
+                    {!isCollapsedDesktop && n.badge && (
+                      <span className={`rounded-md px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider ${active ? 'bg-white/25 text-white' : 'bg-coral/15 text-coral'}`}>{n.badge}</span>
+                    )}
+                    {isCollapsedDesktop && n.badge && (
+                      <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-coral" />
+                    )}
+                    {isCollapsedDesktop && (
+                      <span className="pointer-events-none absolute left-full z-50 ml-2 whitespace-nowrap rounded-md bg-[#1E1B4B] px-2 py-1 text-[11px] font-semibold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                        {n.label}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          );
+        })}
+      </nav>
+
+      {/* Footer */}
+      <div className={`shrink-0 border-t border-slate-100 ${collapsed && !isMobile ? 'p-2' : 'p-3'}`}>
+        {/* Collapse toggle — desktop only */}
+        {!isMobile && (
+          <button
+            onClick={() => setCollapsed((c) => !c)}
+            className={`mb-2 flex items-center rounded-lg border border-slate-200 text-xs font-semibold text-slate-500 hover:bg-slate-50 ${collapsed ? 'h-9 w-full justify-center' : 'w-full gap-2 px-3 py-1.5'}`}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? 'Expand' : 'Collapse'}
+          >
+            {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <><PanelLeftClose className="h-3.5 w-3.5" /> Collapse</>}
+          </button>
+        )}
+        {(!collapsed || isMobile) && (
+          <>
+            <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Signed in as</label>
+            <div className="mt-1 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-indigo-100 text-xs font-bold text-indigo-700">
+                {user?.name?.charAt(0).toUpperCase() || 'A'}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-bold text-slate-900">{user?.name || 'Admin'}</p>
+                <p className="truncate text-[10px] font-medium text-slate-500 capitalize">{user?.role || 'Admin'}</p>
+              </div>
+            </div>
+            <button
+              onClick={async () => { await logout(); navigate('/admin/login'); }}
+              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50"
+            >
+              <LogOut className="h-3 w-3" /> Exit admin
+            </button>
+          </>
+        )}
+        {collapsed && !isMobile && (
+          <button
+            onClick={async () => { await logout(); navigate('/admin/login'); }}
+            className="grid h-9 w-full place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
+            title="Exit admin"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+    </>
+  );
+}
+
+/* ── Main AdminShell ─────────────────────────────────────────────────── */
 export function AdminShell({ title, children, actions, fullHeight, hideDefaultSearch }) {
   const location = useLocation();
   const path = location.pathname;
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  
+
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [showAudit, setShowAudit] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const role = user?.role || 'admin';
@@ -71,164 +236,59 @@ export function AdminShell({ title, children, actions, fullHeight, hideDefaultSe
     localStorage.setItem('tek-admin-nav-collapsed', collapsed ? '1' : '0');
   }, [collapsed]);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileOpen]);
+
   const allowed = new Set(ROLE_ACCESS[role] || []);
   const isActive = (to) => (to === '/admin' ? path === '/admin' : path.startsWith(to));
   const sidebarW = collapsed ? 'w-[68px]' : 'w-[248px]';
+  const closeMobile = useCallback(() => setMobileOpen(false), []);
+  const sharedProps = { collapsed, setCollapsed, allowed, isActive, user, logout, navigate };
 
   return (
     <div className="h-screen overflow-hidden bg-[#F5F7FB]">
+      {/* ── Mobile backdrop overlay ─────────────────────────────────── */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
+          onClick={closeMobile}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* ── Mobile slide-in drawer ──────────────────────────────────── */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col overflow-hidden border-r border-slate-200 bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        aria-label="Mobile navigation"
+      >
+        <SidebarContent {...sharedProps} isMobile={true} onNavClick={closeMobile} />
+      </aside>
+
       <div className="flex h-full">
+        {/* ── Desktop sidebar ─────────────────────────────────────────── */}
         <aside className={`hidden h-full ${sidebarW} shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white transition-[width] duration-200 lg:flex`}>
-          <div className={`flex shrink-0 items-center border-b border-slate-100 ${collapsed ? 'justify-center px-2 py-3' : 'gap-2 px-5 py-4'}`}>
-            {collapsed ? (
-              <Link to="/" className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-[#1E1B4B] to-[#2D5FA8] text-[10px] font-black text-white" aria-label="TekSchool home">TS</Link>
-            ) : (
-              <>
-                <Link to="/" className="inline-flex"><LogoLockup className="h-7" /></Link>
-                <span className="ml-1 rounded-md bg-[#1E1B4B] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">Admin</span>
-              </>
-            )}
-          </div>
-
-          <nav className="no-scrollbar flex-1 overflow-y-auto p-2">
-            {NAV_GROUPS.map((group) => {
-              const visible = group.items.filter((n) => allowed.has(n.key));
-              if (visible.length === 0) return null;
-              return (
-                <div key={group.label} className="mb-3">
-                  {!collapsed && (
-                    <p className="px-3 pb-1 pt-1 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">{group.label}</p>
-                  )}
-                  {collapsed && <div className="mx-3 my-2 h-px bg-slate-100 first:hidden" />}
-                  {visible.map((n) => {
-                    const hasChildren = !!n.children;
-                    const childActive = hasChildren && n.children.some(c => isActive(c.to));
-                    const active = !hasChildren && isActive(n.to);
-
-                    if (hasChildren) {
-                      return (
-                        <div key={n.label} className="mb-0.5 group/nav">
-                          <div
-                            title={collapsed ? n.label : undefined}
-                            className={`group relative flex cursor-default items-center rounded-lg font-medium transition-colors ${
-                              collapsed ? 'mx-1 h-10 justify-center px-0' : 'gap-2.5 px-3 py-2 text-[13px]'
-                            } ${childActive ? 'text-slate-900' : 'text-slate-600'}`}
-                          >
-                            <n.icon className={`shrink-0 ${collapsed ? 'h-[18px] w-[18px]' : 'h-4 w-4'}`} />
-                            {!collapsed && <span className="flex-1 truncate">{n.label}</span>}
-                            {!collapsed && (
-                              <ChevronDown className={`h-3 w-3 transition-transform ${childActive ? 'rotate-180' : ''}`} />
-                            )}
-                            {collapsed && (
-                              <div className="invisible absolute left-full top-0 z-50 ml-2 flex flex-col gap-1 rounded-lg bg-white p-2 shadow-xl ring-1 ring-slate-200 opacity-0 transition-all group-hover/nav:visible group-hover/nav:opacity-100">
-                                <p className="mb-1 border-b border-slate-100 pb-1 px-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">{n.label}</p>
-                                {n.children.map(c => (
-                                  <Link key={c.to} to={c.to} className={`whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium ${isActive(c.to) ? 'bg-gradient-to-r from-[#1E1B4B] to-[#2D5FA8] text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>
-                                    {c.label}
-                                  </Link>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          {!collapsed && (
-                            <div className="ml-5 mt-1 flex flex-col gap-0.5 border-l border-slate-200 pl-2">
-                              {n.children.map(c => {
-                                const cActive = isActive(c.to);
-                                return (
-                                  <Link key={c.to} to={c.to} className={`block rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${cActive ? 'bg-gradient-to-r from-[#1E1B4B] to-[#2D5FA8] text-white shadow-[0_4px_12px_-6px_#1E1B4B]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}>
-                                    {c.label}
-                                  </Link>
-                                )
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <Link
-                        key={n.to}
-                        to={n.to}
-                        title={collapsed ? n.label : undefined}
-                        aria-label={n.label}
-                        className={`group relative mb-0.5 flex items-center rounded-lg font-medium transition-colors ${
-                          collapsed ? 'mx-1 h-10 justify-center px-0' : 'gap-2.5 px-3 py-2 text-[13px]'
-                        } ${active
-                          ? 'bg-gradient-to-r from-[#1E1B4B] to-[#2D5FA8] text-white shadow-[0_4px_12px_-6px_#1E1B4B]'
-                          : 'text-slate-600 hover:bg-slate-50'}`}
-                      >
-                        <n.icon className={`shrink-0 ${collapsed ? 'h-[18px] w-[18px]' : 'h-4 w-4'}`} />
-                        {!collapsed && <span className="flex-1 truncate">{n.label}</span>}
-                        {!collapsed && n.badge && (
-                          <span className={`rounded-md px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider ${active ? 'bg-white/25 text-white' : 'bg-coral/15 text-coral'}`}>{n.badge}</span>
-                        )}
-                        {collapsed && n.badge && (
-                          <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-coral" />
-                        )}
-                        {collapsed && (
-                          <span className="pointer-events-none absolute left-full z-50 ml-2 whitespace-nowrap rounded-md bg-[#1E1B4B] px-2 py-1 text-[11px] font-semibold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
-                            {n.label}
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </nav>
-
-          <div className={`shrink-0 border-t border-slate-100 ${collapsed ? 'p-2' : 'p-3'}`}>
-            <button
-              onClick={() => setCollapsed((c) => !c)}
-              className={`mb-2 flex items-center rounded-lg border border-slate-200 text-xs font-semibold text-slate-500 hover:bg-slate-50 ${collapsed ? 'h-9 w-full justify-center' : 'w-full gap-2 px-3 py-1.5'}`}
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              title={collapsed ? 'Expand' : 'Collapse'}
-            >
-              {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <><PanelLeftClose className="h-3.5 w-3.5" /> Collapse</>}
-            </button>
-            {!collapsed && (
-              <>
-                <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Signed in as</label>
-                <div className="mt-1 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-indigo-100 text-xs font-bold text-indigo-700">
-                    {user?.name?.charAt(0).toUpperCase() || 'A'}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-bold text-slate-900">{user?.name || 'Admin'}</p>
-                    <p className="truncate text-[10px] font-medium text-slate-500 capitalize">{user?.role || 'Admin'}</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={async () => {
-                    await logout();
-                    navigate('/admin/login');
-                  }} 
-                  className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50"
-                >
-                  <LogOut className="h-3 w-3" /> Exit admin
-                </button>
-              </>
-            )}
-            {collapsed && (
-              <button 
-                onClick={async () => {
-                  await logout();
-                  navigate('/admin/login');
-                }} 
-                className="grid h-9 w-full place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" 
-                title="Exit admin"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
+          <SidebarContent {...sharedProps} isMobile={false} onNavClick={undefined} />
         </aside>
 
+        {/* ── Main content ─────────────────────────────────────────────── */}
         <div className="min-w-0 flex-1 h-full overflow-y-auto flex flex-col">
+          {/* Top bar */}
           <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur shrink-0">
-            <div className="flex items-center gap-3 px-4 py-2.5 md:px-6">
+            <div className="flex items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4 md:px-6">
+              {/* Mobile hamburger — only visible below lg */}
+              <button
+                onClick={() => setMobileOpen(true)}
+                className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 lg:hidden"
+                aria-label="Open navigation menu"
+              >
+                <Menu className="h-4 w-4" />
+              </button>
+              {/* Desktop collapse toggle — only visible at lg+ */}
               <button
                 onClick={() => setCollapsed((c) => !c)}
                 className="hidden h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 lg:grid"
@@ -237,8 +297,8 @@ export function AdminShell({ title, children, actions, fullHeight, hideDefaultSe
                 {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
               </button>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">TekSchool · Internal</p>
-                <h1 className="truncate font-display text-lg font-bold">{title}</h1>
+                <p className="hidden text-[10px] font-semibold uppercase tracking-widest text-slate-400 sm:block">TekSchool · Internal</p>
+                <h1 className="truncate font-display text-base font-bold sm:text-lg">{title}</h1>
               </div>
               {!hideDefaultSearch && (
                 <div className="relative hidden max-w-xs flex-1 md:block">
@@ -279,12 +339,14 @@ export function AdminShell({ title, children, actions, fullHeight, hideDefaultSe
           )}
 
           <main className={fullHeight
-            ? 'no-scrollbar flex-1 overflow-hidden px-4 pt-5 md:px-6 md:pt-6 flex flex-col'
-            : 'no-scrollbar flex-1 px-4 py-5 md:px-6 md:py-6'
+            ? 'no-scrollbar flex-1 overflow-hidden px-3 pt-4 sm:px-4 sm:pt-5 md:px-6 md:pt-6 flex flex-col'
+            : 'no-scrollbar flex-1 px-3 py-4 sm:px-4 sm:py-5 md:px-6 md:py-6'
           }>{children}</main>
         </div>
       </div>
+
       <AdminAI open={aiOpen} onClose={() => setAiOpen(false)} />
     </div>
   );
 }
+

@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import {
-  LayoutGrid, Wallet, Settings2, Shield, Search, Bell, LogOut, Sparkles, PanelLeftClose, PanelLeftOpen
+  LayoutGrid, Wallet, Settings2, Shield, Search, Bell, LogOut, Sparkles, PanelLeftClose, PanelLeftOpen, Menu, X
 } from 'lucide-react';
 import { LogoLockup } from '../ui/Logo.jsx';
 import { AdminAI } from '../admin/AdminAI.jsx';
@@ -12,7 +12,7 @@ const NAV_GROUPS = [
     { to: '/finance', label: 'Dashboard', icon: LayoutGrid },
   ] },
   { label: 'Operations', items: [
-    { to: '/finance/management', label: 'Finance', icon: Wallet },
+    { to: '/finance', label: 'Finance', icon: Wallet },
   ] },
   { label: 'System', items: [
     { to: '/finance/settings', label: 'Settings', icon: Settings2 },
@@ -20,13 +20,119 @@ const NAV_GROUPS = [
   ] }
 ];
 
+/* ── Sidebar nav — declared at module level to avoid static-components lint ── */
+function FinanceSidebarNav({ isCollapsed, isMobile, onClose, setCollapsed, isActive, user, logout, navigate }) {
+  return (
+    <>
+      {/* Logo header */}
+      <div className={`flex shrink-0 items-center border-b border-slate-100 ${isCollapsed && !isMobile ? 'justify-center px-2 py-3' : 'gap-2 px-5 py-4'}`}>
+        {isCollapsed && !isMobile ? (
+          <Link to="/" className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-[#065F46] to-[#047857] text-[10px] font-black text-white" aria-label="TekSchool home">TS</Link>
+        ) : (
+          <>
+            <Link to="/" className="inline-flex"><LogoLockup className="h-7" /></Link>
+            <span className="ml-1 rounded-md bg-[#065F46] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">Finance</span>
+            {isMobile && (
+              <button onClick={onClose} className="ml-auto grid h-8 w-8 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" aria-label="Close menu">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Nav */}
+      <nav className="no-scrollbar flex-1 overflow-y-auto p-2">
+        {NAV_GROUPS.map((group) => {
+          const showLabel = !isCollapsed || isMobile;
+          return (
+            <div key={group.label} className="mb-3">
+              {showLabel && <p className="px-3 pb-1 pt-1 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">{group.label}</p>}
+              {!showLabel && <div className="mx-3 my-2 h-px bg-slate-100 first:hidden" />}
+              {group.items.map((n) => {
+                const active = isActive(n.to);
+                const cd = isCollapsed && !isMobile;
+                return (
+                  <Link
+                    key={n.to}
+                    to={n.to}
+                    onClick={isMobile ? onClose : undefined}
+                    title={cd ? n.label : undefined}
+                    aria-label={n.label}
+                    className={`group relative mb-0.5 flex items-center rounded-lg font-medium transition-colors ${
+                      cd ? 'mx-1 h-10 justify-center px-0' : 'gap-2.5 px-3 py-2 text-[13px]'
+                    } ${active
+                      ? 'bg-gradient-to-r from-[#065F46] to-[#047857] text-white shadow-[0_4px_12px_-6px_#065F46]'
+                      : 'text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    <n.icon className={`shrink-0 ${cd ? 'h-[18px] w-[18px]' : 'h-4 w-4'}`} />
+                    {!cd && <span className="flex-1 truncate">{n.label}</span>}
+                    {cd && (
+                      <span className="pointer-events-none absolute left-full z-50 ml-2 whitespace-nowrap rounded-md bg-[#065F46] px-2 py-1 text-[11px] font-semibold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                        {n.label}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          );
+        })}
+      </nav>
+
+      {/* Footer */}
+      <div className={`shrink-0 border-t border-slate-100 ${isCollapsed && !isMobile ? 'p-2' : 'p-3'}`}>
+        {!isMobile && (
+          <button
+            onClick={() => setCollapsed((c) => !c)}
+            className={`mb-2 flex items-center rounded-lg border border-slate-200 text-xs font-semibold text-slate-500 hover:bg-slate-50 ${isCollapsed ? 'h-9 w-full justify-center' : 'w-full gap-2 px-3 py-1.5'}`}
+            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <><PanelLeftClose className="h-3.5 w-3.5" /> Collapse</>}
+          </button>
+        )}
+        {(!isCollapsed || isMobile) && (
+          <>
+            <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Signed in as</label>
+            <div className="mt-1 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-emerald-100 text-xs font-bold text-emerald-700">
+                {user?.name?.charAt(0).toUpperCase() || 'F'}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-bold text-slate-900">{user?.name || 'Finance'}</p>
+                <p className="truncate text-[10px] font-medium text-slate-500 capitalize">{user?.role || 'Finance'}</p>
+              </div>
+            </div>
+            <button
+              onClick={async () => { await logout(); navigate('/admin/login'); }}
+              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50"
+            >
+              <LogOut className="h-3 w-3" /> Sign out
+            </button>
+          </>
+        )}
+        {isCollapsed && !isMobile && (
+          <button
+            onClick={async () => { await logout(); navigate('/admin/login'); }}
+            className="grid h-9 w-full place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
+            title="Sign out"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+    </>
+  );
+}
+
 export function FinanceShell({ title, children, actions, fullHeight, hideDefaultSearch }) {
   const location = useLocation();
   const path = location.pathname;
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  
+
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
 
   useEffect(() => {
@@ -34,117 +140,60 @@ export function FinanceShell({ title, children, actions, fullHeight, hideDefault
     const stored = localStorage.getItem('tek-finance-nav-collapsed');
     setTimeout(() => setCollapsed(stored === null ? true : stored === '1'), 0);
   }, []);
-  
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     localStorage.setItem('tek-finance-nav-collapsed', collapsed ? '1' : '0');
   }, [collapsed]);
 
+  // Lock body scroll when mobile menu is open (syncs with external DOM — no setState)
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileOpen]);
+
   const isActive = (to) => (to === '/finance' ? path === '/finance' : path.startsWith(to));
   const sidebarW = collapsed ? 'w-[68px]' : 'w-[248px]';
+  const closeMobile = () => setMobileOpen(false);
+  const sharedNavProps = { setCollapsed, isActive, user, logout, navigate };
 
   return (
     <div className="h-screen overflow-hidden bg-[#F5F7FB]">
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden" onClick={closeMobile} aria-hidden="true" />
+      )}
+
+      {/* Mobile slide-in drawer */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col overflow-hidden border-r border-slate-200 bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        aria-label="Finance navigation"
+      >
+        <FinanceSidebarNav {...sharedNavProps} isCollapsed={false} isMobile={true} onClose={closeMobile} />
+      </aside>
+
       <div className="flex h-full">
+        {/* Desktop sidebar */}
         <aside className={`hidden h-full ${sidebarW} shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white transition-[width] duration-200 lg:flex`}>
-          <div className={`flex shrink-0 items-center border-b border-slate-100 ${collapsed ? 'justify-center px-2 py-3' : 'gap-2 px-5 py-4'}`}>
-            {collapsed ? (
-              <Link to="/" className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-[#065F46] to-[#047857] text-[10px] font-black text-white" aria-label="TekSchool home">TS</Link>
-            ) : (
-              <>
-                <Link to="/" className="inline-flex"><LogoLockup className="h-7" /></Link>
-                <span className="ml-1 rounded-md bg-[#065F46] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">Finance</span>
-              </>
-            )}
-          </div>
-
-          <nav className="no-scrollbar flex-1 overflow-y-auto p-2">
-            {NAV_GROUPS.map((group) => {
-              return (
-                <div key={group.label} className="mb-3">
-                  {!collapsed && (
-                    <p className="px-3 pb-1 pt-1 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">{group.label}</p>
-                  )}
-                  {collapsed && <div className="mx-3 my-2 h-px bg-slate-100 first:hidden" />}
-                  {group.items.map((n) => {
-                    const active = isActive(n.to);
-                    return (
-                      <Link
-                        key={n.to}
-                        to={n.to}
-                        title={collapsed ? n.label : undefined}
-                        aria-label={n.label}
-                        className={`group relative mb-0.5 flex items-center rounded-lg font-medium transition-colors ${
-                          collapsed ? 'mx-1 h-10 justify-center px-0' : 'gap-2.5 px-3 py-2 text-[13px]'
-                        } ${active
-                          ? 'bg-gradient-to-r from-[#065F46] to-[#047857] text-white shadow-[0_4px_12px_-6px_#065F46]'
-                          : 'text-slate-600 hover:bg-slate-50'}`}
-                      >
-                        <n.icon className={`shrink-0 ${collapsed ? 'h-[18px] w-[18px]' : 'h-4 w-4'}`} />
-                        {!collapsed && <span className="flex-1 truncate">{n.label}</span>}
-                        {collapsed && (
-                          <span className="pointer-events-none absolute left-full z-50 ml-2 whitespace-nowrap rounded-md bg-[#065F46] px-2 py-1 text-[11px] font-semibold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
-                            {n.label}
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </nav>
-
-          <div className={`shrink-0 border-t border-slate-100 ${collapsed ? 'p-2' : 'p-3'}`}>
-            <button
-              onClick={() => setCollapsed((c) => !c)}
-              className={`mb-2 flex items-center rounded-lg border border-slate-200 text-xs font-semibold text-slate-500 hover:bg-slate-50 ${collapsed ? 'h-9 w-full justify-center' : 'w-full gap-2 px-3 py-1.5'}`}
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              title={collapsed ? 'Expand' : 'Collapse'}
-            >
-              {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <><PanelLeftClose className="h-3.5 w-3.5" /> Collapse</>}
-            </button>
-            {!collapsed && (
-              <>
-                <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Signed in as</label>
-                <div className="mt-1 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-emerald-100 text-xs font-bold text-emerald-700">
-                    {user?.name?.charAt(0).toUpperCase() || 'F'}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-bold text-slate-900">{user?.name || 'Finance'}</p>
-                    <p className="truncate text-[10px] font-medium text-slate-500 capitalize">{user?.role || 'Finance'}</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={async () => {
-                    await logout();
-                    navigate('/admin/login'); 
-                  }} 
-                  className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50"
-                >
-                  <LogOut className="h-3 w-3" /> Sign out
-                </button>
-              </>
-            )}
-            {collapsed && (
-              <button 
-                onClick={async () => {
-                  await logout();
-                  navigate('/admin/login');
-                }} 
-                className="grid h-9 w-full place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" 
-                title="Sign out"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
+          <FinanceSidebarNav {...sharedNavProps} isCollapsed={collapsed} isMobile={false} onClose={undefined} />
         </aside>
 
+        {/* Main content */}
         <div className="min-w-0 flex-1 h-full overflow-y-auto flex flex-col">
+          {/* Topbar */}
           <div className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur shrink-0">
-            <div className="flex items-center gap-3 px-4 py-2.5 md:px-6">
+            <div className="flex items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4 md:px-6">
+              {/* Mobile hamburger */}
+              <button
+                onClick={() => setMobileOpen(true)}
+                className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 lg:hidden"
+                aria-label="Open navigation menu"
+              >
+                <Menu className="h-4 w-4" />
+              </button>
+              {/* Desktop collapse toggle */}
               <button
                 onClick={() => setCollapsed((c) => !c)}
                 className="hidden h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 lg:grid"
@@ -153,8 +202,8 @@ export function FinanceShell({ title, children, actions, fullHeight, hideDefault
                 {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
               </button>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">TekSchool · Finance</p>
-                <h1 className="truncate font-display text-lg font-bold">{title}</h1>
+                <p className="hidden text-[10px] font-semibold uppercase tracking-widest text-slate-400 sm:block">TekSchool · Finance</p>
+                <h1 className="truncate font-display text-base font-bold sm:text-lg">{title}</h1>
               </div>
               {!hideDefaultSearch && (
                 <div className="relative hidden max-w-xs flex-1 md:block">
@@ -177,8 +226,8 @@ export function FinanceShell({ title, children, actions, fullHeight, hideDefault
           </div>
 
           <main className={fullHeight
-            ? 'no-scrollbar flex-1 overflow-hidden px-4 pt-5 md:px-6 md:pt-6 flex flex-col'
-            : 'no-scrollbar flex-1 px-4 py-5 md:px-6 md:py-6'
+            ? 'no-scrollbar flex-1 overflow-hidden px-3 pt-4 sm:px-4 sm:pt-5 md:px-6 md:pt-6 flex flex-col'
+            : 'no-scrollbar flex-1 px-3 py-4 sm:px-4 sm:py-5 md:px-6 md:py-6'
           }>{children}</main>
         </div>
       </div>
