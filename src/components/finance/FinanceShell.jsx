@@ -12,7 +12,7 @@ const NAV_GROUPS = [
     { to: '/finance', label: 'Dashboard', icon: LayoutGrid },
   ] },
   { label: 'Operations', items: [
-    { to: '/finance', label: 'Finance', icon: Wallet },
+    { to: '/finance/management', label: 'Finance', icon: Wallet },
   ] },
   { label: 'System', items: [
     { to: '/finance/settings', label: 'Settings', icon: Settings2 },
