@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { LayoutDashboard, BookOpen, Briefcase, MessageCircle, Settings, LogOut, Menu, X, Bell, HelpCircle, ChevronDown, GraduationCap, User } from 'lucide-react';
 import { LogoLockup } from '../ui/Logo.jsx';
 import { useStudentAuth } from '../../context/StudentAuthContext.jsx';
+import { getStudentProfile } from '../../lib/api.js';
 import { ActionModals } from '../ActionModals.jsx';
 import { NotificationDrawer, SEED_NOTIFICATIONS } from './NotificationDrawer.jsx';
 
@@ -31,6 +32,22 @@ export function DashboardShell() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState(SEED_NOTIFICATIONS);
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const [studentProfile, setStudentProfile] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await getStudentProfile();
+        if (res.data?.profile) setStudentProfile(res.data.profile);
+      } catch {
+        // fail silently
+      }
+    };
+    fetchProfile();
+    window.addEventListener('profile_updated', fetchProfile);
+    return () => window.removeEventListener('profile_updated', fetchProfile);
+  }, []);
 
   // Close drawers on navigation
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -102,8 +119,8 @@ export function DashboardShell() {
 
         {/* Drawer user info */}
         <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-3">
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-blue-deep)] text-xs font-bold text-white">
-            {s.name ? s.name.charAt(0).toUpperCase() : 'S'}
+          <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-blue-deep)] text-xs font-bold text-white">
+            {studentProfile?.profile_img ? <img src={studentProfile.profile_img} alt="Avatar" className="h-full w-full object-cover" /> : s.name ? s.name.charAt(0).toUpperCase() : 'S'}
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold text-slate-900">{s.name || 'Student'}</p>
@@ -180,8 +197,8 @@ export function DashboardShell() {
                   onClick={() => setMoreOpen((o) => !o)}
                   className="flex items-center gap-2 rounded-full border border-slate-200 bg-white pl-1 pr-2.5 py-1 hover:bg-slate-50"
                 >
-                  <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-blue-deep)] text-xs font-bold text-white">
-                    {s.avatarInitials}
+                  <div className="grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-blue-deep)] text-xs font-bold text-white">
+                    {studentProfile?.profile_img ? <img src={studentProfile.profile_img} alt="Avatar" className="h-full w-full object-cover" /> : s.name ? s.name.charAt(0).toUpperCase() : 'S'}
                   </div>
                   <span className="hidden text-sm font-semibold md:inline">{s.name.split(' ')[0]}</span>
                   <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
@@ -191,8 +208,8 @@ export function DashboardShell() {
                     <div className="fixed inset-0 z-40" onClick={() => setMoreOpen(false)} />
                     <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
                       <div className="flex items-center gap-3 rounded-xl px-3 py-2.5">
-                        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-blue-deep)] text-xs font-bold text-white">
-                          {s.name ? s.name.charAt(0).toUpperCase() : 'S'}
+                        <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-blue-deep)] text-xs font-bold text-white">
+                          {studentProfile?.profile_img ? <img src={studentProfile.profile_img} alt="Avatar" className="h-full w-full object-cover" /> : s.name ? s.name.charAt(0).toUpperCase() : 'S'}
                         </div>
                         <div className="min-w-0">
                           <span className="font-semibold text-slate-800">{s.name || 'Student'}</span>

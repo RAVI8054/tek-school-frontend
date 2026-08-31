@@ -62,6 +62,7 @@ import CommunityLayout from './features/student/community/CommunityLayout.jsx';
 import ChannelPage from './features/student/community/ChannelPage.jsx';
 import Placements from './features/student/placements/Placements.jsx';
 import StudentProfile from './features/student/profile/StudentProfile.jsx';
+import EditStudentProfile from './features/student/profile/EditStudentProfile.jsx';
 import Settings from './features/student/settings/Settings.jsx';
 import HelpCenter from './features/student/help/HelpCenter.jsx';
 
@@ -149,6 +150,7 @@ function App() {
           <Route path="resources" element={<Resources />} />
           <Route path="live-room" element={<LiveRoom />} />
           <Route path="profile" element={<StudentProfile />} />
+          <Route path="profile/edit" element={<EditStudentProfile />} />
           <Route path="placements" element={<Placements />} />
           <Route path="community">
             <Route index element={<Community />} />

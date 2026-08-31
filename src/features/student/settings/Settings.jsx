@@ -67,7 +67,7 @@ function SettingsPage() {
 
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
         {/* Left tabs */}
-        <aside className="h-fit rounded-3xl border border-border bg-white p-3 lg:sticky lg:top-24">
+        <aside className="self-start rounded-3xl border border-border bg-white p-3 lg:sticky lg:top-6">
           <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Sections</p>
           <nav className="space-y-1">
             {TABS.map((t) => {
@@ -114,10 +114,9 @@ function SettingsPage() {
           {tab === "account" &&
           <>
               <Card title="Account" desc="Sign-in identity and account status. Edit your public profile from the Profile page.">
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2">
                   <ReadField label="Signed in as" value={session.email} />
-                  <ReadField label="Account type" value="Student · Full cohort" />
-                  <ReadField label="Member since" value="Jan 2026" />
+                  <ReadField label="Member since" value={session.createdAt ? new Date(session.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : "Recently"} />
                 </div>
                 <Link to="/dashboard/profile" className="mt-4 inline-block rounded-full border border-border px-4 py-2 text-xs font-semibold">Go to profile</Link>
               </Card>

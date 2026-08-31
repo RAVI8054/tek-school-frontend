@@ -7,7 +7,7 @@ import { AlertTriangle, MessageCircle, Flag, Pencil, Trash2, UserPlus } from 'lu
 import { pushToast } from '../../../lib/actionBus.js';
 import { ActionModals } from '../../../components/ActionModals.jsx';
 import { Modal, PrimaryBtn, GhostBtn } from '../../../components/ui/Modal.jsx';
-import { registerStudent, getStudents } from '../../../lib/api.js';
+import { registerStudent, getStudents, updateStudentAdmin } from '../../../lib/api.js';
 
 export function StudentsPage() {
   const [students, setStudents] = useState([]);
@@ -37,11 +37,16 @@ export function StudentsPage() {
   };
   const bulkDelete = (ids) => setStudents((arr) => arr.filter((s) => !ids.includes(s.id)));
 
-  const saveEdit = (patch) => {
+  const saveEdit = async (patch) => {
     if (!editing) return;
-    setStudents((arr) => arr.map((s) => s.id === editing.id ? { ...s, ...patch } : s));
-    pushToast(`Updated ${editing.name}`);
-    setEditing(null);
+    try {
+      await updateStudentAdmin(editing.id, patch);
+      setStudents((arr) => arr.map((s) => s.id === editing.id ? { ...s, ...patch } : s));
+      pushToast(`Updated ${patch.name}`);
+      setEditing(null);
+    } catch (err) {
+      pushToast('Failed to update: ' + err.message);
+    }
   };
 
   const createStudent = async (form) => {
@@ -98,7 +103,9 @@ export function StudentsPage() {
         columns={[
           { key: 'name', label: 'Student', render: (r) => (
             <div className="flex items-center gap-2">
-              <div className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-blue-deep)] text-[10px] font-bold text-white">{r.name.split(' ').map((n) => n[0]).slice(0,2).join('')}</div>
+              <div className="grid h-7 w-7 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-blue-deep)] text-[10px] font-bold text-white">
+                {r.profile_img ? <img src={r.profile_img} alt="Avatar" className="h-full w-full object-cover" /> : r.name.split(' ').map((n) => n[0]).slice(0,2).join('')}
+              </div>
               <div className="min-w-0">
                 <p className="font-semibold">{r.name} {r.atRisk && <AlertTriangle className="ml-0.5 inline h-3 w-3 text-coral" />}</p>
                 <p className="text-[10px] text-slate-400">{r.email}</p>
@@ -173,16 +180,22 @@ function StudentEditModal({ open, student, onClose, onSave }) {
             const fd = new FormData(e.currentTarget);
             const name = String(fd.get('name') ?? '').trim();
             const email = String(fd.get('email') ?? '').trim();
+            const track = String(fd.get('track') ?? TRACKS[0]);
+            const cohort = String(fd.get('cohort') ?? COHORTS[0].name);
             const attendance = Math.max(0, Math.min(100, Number(fd.get('attendance') ?? 0)));
             const completion = Math.max(0, Math.min(100, Number(fd.get('completion') ?? 0)));
             if (name.length < 2) return pushToast('Name is too short');
             if (!/^\S+@\S+\.\S+$/.test(email)) return pushToast('Enter a valid email');
-            onSave({ name, email, attendance, completion });
+            onSave({ name, email, track, cohort, attendance, completion });
           }}
           className="space-y-3 p-4"
         >
           <FormField name="name" label="Full name" defaultValue={student.name} />
           <FormField name="email" label="Email" type="email" defaultValue={student.email} />
+          <div className="grid grid-cols-2 gap-2">
+            <SelectField name="track" label="Track" options={TRACKS.map((t) => ({ value: t, label: t }))} defaultValue={student.track} />
+            <SelectField name="cohort" label="Cohort" options={COHORTS.map((c) => ({ value: c.name, label: c.name }))} defaultValue={student.cohort} />
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <FormField name="attendance" label="Attendance %" type="number" defaultValue={String(student.attendance)} />
             <FormField name="completion" label="Completion %" type="number" defaultValue={String(student.completion)} />
@@ -260,10 +273,10 @@ function FormField({ name, label, type = 'text', defaultValue, placeholder }) {
     </label>
   );
 }
-function SelectField({ name, label, options }) {
+function SelectField({ name, label, options, defaultValue }) {
   return (
     <label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-500">{label}
-      <select name={name} className="mt-1 w-full rounded-lg bg-slate-50 px-3 py-2 text-sm font-normal normal-case text-foreground outline-none focus:bg-white">
+      <select name={name} defaultValue={defaultValue} className="mt-1 w-full rounded-lg bg-slate-50 px-3 py-2 text-sm font-normal normal-case text-foreground outline-none focus:bg-white">
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </label>

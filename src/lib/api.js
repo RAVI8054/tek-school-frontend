@@ -133,7 +133,14 @@ export async function registerStudent(data) {
  * Fetch all students (Admin only)
  */
 export async function getStudents() {
-  return fetchApi(`/auth/student`);
+  return fetchApi('/auth/student', { method: 'GET' });
+}
+
+export async function updateStudentAdmin(id, data) {
+  return fetchApi(`/auth/student/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  });
 }
 
 /**
@@ -304,4 +311,41 @@ export async function unblockAdminCommunityUser(userId) {
   });
 }
 
+// ============================================================================
+// STUDENT PROFILE APIs
+// ============================================================================
 
+export async function getStudentProfile() {
+  return fetchApi(`/student/profile`);
+}
+
+export async function updateStudentProfile(data) {
+  return fetchApi(`/student/profile`, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  });
+}
+
+export async function uploadStudentAvatar(file) {
+  const formData = new FormData();
+  formData.append('avatar', file);
+
+  // Note: For FormData, we must omit the 'Content-Type' header so the browser sets the correct boundary
+  const url = `${API_BASE}/student/profile/avatar`;
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    body: formData,
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      window.dispatchEvent(new Event('auth:student_unauthorized'));
+    }
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || `Avatar upload failed with status ${response.status}`);
+  }
+
+  return response.json();
+}

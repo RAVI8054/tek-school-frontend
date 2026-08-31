@@ -1,50 +1,50 @@
 
 import { useEffect, useState } from "react";
-import { useSession, useHydrated } from "../../../lib/auth";
+import { useNavigate } from "react-router-dom";
+import { useHydrated } from "../../../lib/auth";
 import { GAMIFICATION, BADGES, QUESTS, LEADERBOARD, ACTIVITY } from "../../../lib/dashboard-data";
+import { getStudentProfile } from "../../../lib/api";
 import { pushToast } from "../../../lib/action-bus";
 import { Avatar } from "../../../components/Avatar";
-import { Mail, MapPin, Pencil, X, Phone, Sparkles, Brain, Rocket, Target, Medal, Award, Lock, Trophy, Flame, Zap, ChevronRight, TrendingUp, Star, Download, FileText } from "lucide-react";
+import { Mail, MapPin, Pencil, Phone, Sparkles, Brain, Rocket, Target, Medal, Award, Lock, Trophy, Flame, Zap, ChevronRight, TrendingUp, Star, Download, FileText } from "lucide-react";
 
 
 export default ProfilePage;
 
 
 
-const STORAGE_KEY = "tek-profile";
+
 
 function ProfilePage() {
   const hydrated = useHydrated();
-  const s = useSession();
-    const [editing, setEditing] = useState(false);
+  const navigate = useNavigate();
   const [profile, setProfile] = useState({
-    name: "TekSchool Student",
-    email: "student@tek.school",
-    phone: "+91 80801 87187",
-    cohort: "AI Engineering · Cohort 07",
-    location: "Bengaluru",
-    bio: "Building AI products, one shipped project at a time."
+    name: "",
+    email: "",
+    phone: "",
+    cohort: "",
+    location: "",
+    bio: "",
+    profile_img: ""
   });
+
 
   useEffect(() => {
     if (!hydrated) return;
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      queueMicrotask(() => {
-      try {setProfile((p) => ({ ...p, ...JSON.parse(raw) }));return;} catch {/* ignore */}
-    });
-    }
-    if (s) queueMicrotask(() => setProfile((p) => ({ ...p, name: s.name, email: s.email })));
-  }, [hydrated, s]);
+    const fetchProfile = async () => {
+      try {
+        const res = await getStudentProfile();
+        if (res.data?.profile) {
+          setProfile(res.data.profile);
+        }
+      } catch (err) {
+        console.error("Failed to load profile", err);
+      }
+    };
+    fetchProfile();
+  }, [hydrated]);
 
-  const initials = profile.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-
-  const save = (next) => {
-    setProfile(next);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    setEditing(false);
-    pushToast("Profile updated");
-  };
+  const initials = profile.name ? profile.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() : "TS";
 
   const [tab, setTab] = useState("resume");
 
@@ -58,8 +58,8 @@ function ProfilePage() {
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
             <div className="relative shrink-0">
-              <div className="grid h-24 w-24 place-items-center rounded-3xl bg-white/15 font-display text-3xl font-bold text-white ring-2 ring-white/40 backdrop-blur">
-                {initials}
+              <div className="grid h-24 w-24 place-items-center rounded-3xl bg-white/15 font-display text-3xl font-bold text-white ring-2 ring-white/40 backdrop-blur overflow-hidden">
+                {profile.profile_img ? <img src={profile.profile_img} alt={profile.name} className="h-full w-full object-cover" /> : initials}
               </div>
               <span className="absolute -bottom-2 -right-2 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-[#4C3BCF] shadow">
                 LVL {GAMIFICATION.level}
@@ -85,7 +85,7 @@ function ProfilePage() {
               <Download className="h-4 w-4" /> Download résumé
             </button>
             <button
-              onClick={() => setEditing(true)}
+              onClick={() => navigate("/dashboard/profile/edit")}
               className="inline-flex items-center gap-2 rounded-full bg-white/15 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur hover:bg-white/25">
               
               <Pencil className="h-4 w-4" /> Edit profile
@@ -122,8 +122,6 @@ function ProfilePage() {
         </div>
 
       </section>
-
-      {editing && <EditProfileModal profile={profile} onClose={() => setEditing(false)} onSave={save} />}
 
       {tab === "resume" ? <ResumeDocument profile={profile} /> : <AchievementsSection />}
     </div>);
@@ -336,56 +334,7 @@ function downloadResume(profile) {
 
 
 
-function EditProfileModal({ profile, onClose, onSave }) {
-  const [form, setForm] = useState(profile);
-  const field = (key, label, type = "text") =>
-  <label className="block">
-      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</span>
-      <input
-      type={type}
-      value={form[key]}
-      onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-      className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-[var(--accent-blue-deep)]" />
-    
-    </label>;
-
-
-  return (
-    <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-900/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="font-display text-xl font-bold">Edit profile</h2>
-          <button onClick={onClose} aria-label="Close" className="grid h-9 w-9 place-items-center rounded-full hover:bg-slate-100">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <form
-          onSubmit={(e) => {e.preventDefault();onSave(form);}}
-          className="space-y-4 px-6 py-5">
-          
-          {field("name", "Full name")}
-          {field("email", "Email", "email")}
-          {field("phone", "Phone")}
-          {field("cohort", "Programme / cohort")}
-          {field("location", "Location")}
-          <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">About</span>
-            <textarea
-              rows={3}
-              value={form.bio}
-              onChange={(e) => setForm({ ...form, bio: e.target.value })}
-              className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-[var(--accent-blue-deep)]" />
-            
-          </label>
-          <div className="flex justify-end gap-2 pt-1">
-            <button type="button" onClick={onClose} className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
-            <button type="submit" className="rounded-full bg-gradient-to-r from-[var(--accent-blue-deep)] to-[var(--accent-blue)] px-5 py-2 text-sm font-semibold text-white">Save changes</button>
-          </div>
-        </form>
-      </div>
-    </div>);
-
-}
+// Removed EditProfileModal
 
 const ICONS = { trophy: Trophy, flame: Flame, zap: Zap, target: Target, rocket: Rocket, brain: Brain, medal: Medal, sparkles: Sparkles };
 const RARITY_TONES = {
