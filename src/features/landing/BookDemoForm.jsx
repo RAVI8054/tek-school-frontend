@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { CheckCircle2, Users, Loader2 } from "lucide-react";
 import { createEnquiry } from "../../lib/api.js";
 
@@ -42,15 +42,7 @@ export function BookDemoForm({
   const [done, setDone] = useState(null);
   const [formError, setFormError] = useState(null);
   
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const p = new URLSearchParams(window.location.search);
-    const next = {};
-    for (const k of ["utm_source", "utm_medium", "utm_campaign"]) {
-      const v = p.get(k);
-      if (v) next[k] = v.slice(0, 120);
-    }
-  }, []);
+
 
   const emailInvalid = email.length > 0 && !EMAIL_RE.test(email.trim());
   const todayStart = useMemo(() => {
@@ -63,14 +55,14 @@ export function BookDemoForm({
     date && time
       ? `${date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · ${time}`
       : "";
+  const isWorkshop = !!workshopTitle;
   const complete = useMemo(
-    () =>
-      !!program &&
-      name.trim().length >= 2 &&
-      EMAIL_RE.test(email.trim()) &&
-      phone.trim().length >= 6 &&
-      !!slot,
-    [program, name, email, phone, slot],
+    () => {
+      const baseValid = name.trim().length >= 2 && EMAIL_RE.test(email.trim()) && phone.trim().length >= 6;
+      if (isWorkshop) return baseValid;
+      return baseValid && !!program && !!slot;
+    },
+    [isWorkshop, program, name, email, phone, slot],
   );
 
   async function onSubmit(e) {
@@ -83,23 +75,35 @@ export function BookDemoForm({
     }
     setSubmitting(true);
     try {
-      // Local ISO string to avoid timezone shifts
-      const offset = date.getTimezoneOffset() * 60000;
-      const localISOTime = (new Date(date.getTime() - offset)).toISOString().split("T")[0];
-      
-      const payload = {
-        name,
-        email,
-        phone: `${code} ${phone}`.trim(),
-        program,
-        education: education.trim() || undefined,
-        inquiry_type: "book demo",
-        slot: {
-          type: "scheduled",
-          dateString: localISOTime,
-          timePreference: time
-        }
-      };
+      let payload;
+      if (isWorkshop) {
+        payload = {
+          name,
+          email,
+          phone: `${code} ${phone}`.trim(),
+          education: education.trim() || undefined,
+          workshop_name: workshopTitle,
+          inquiry_type: "workshop",
+        };
+      } else {
+        // Local ISO string to avoid timezone shifts
+        const offset = date.getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(date.getTime() - offset)).toISOString().split("T")[0];
+        
+        payload = {
+          name,
+          email,
+          phone: `${code} ${phone}`.trim(),
+          program,
+          education: education.trim() || undefined,
+          inquiry_type: "book demo",
+          slot: {
+            type: "scheduled",
+            dateString: localISOTime,
+            timePreference: time
+          }
+        };
+      }
       
       await createEnquiry(payload);
       setDone(slot);
@@ -142,15 +146,17 @@ export function BookDemoForm({
         </div>
       )}
 
-      <div>
-        <label htmlFor="bd-program" className={labelCls}>Program<Req /></label>
-        <select id="bd-program" required value={program} onChange={(e) => setProgram(e.target.value)} className={fieldCls}>
-          <option value="">Select a program</option>
-          {(presetProgram && !PROGRAMS.includes(presetProgram) ? [presetProgram, ...PROGRAMS] : PROGRAMS).map((p) => (
-            <option key={p} value={p}>{p}</option>
-          ))}
-        </select>
-      </div>
+      {!isWorkshop && (
+        <div>
+          <label htmlFor="bd-program" className={labelCls}>Program<Req /></label>
+          <select id="bd-program" required value={program} onChange={(e) => setProgram(e.target.value)} className={fieldCls}>
+            <option value="">Select a program</option>
+            {(presetProgram && !PROGRAMS.includes(presetProgram) ? [presetProgram, ...PROGRAMS] : PROGRAMS).map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div>
         <label htmlFor="bd-name" className={labelCls}>Name<Req /></label>
@@ -193,85 +199,89 @@ export function BookDemoForm({
         <input id="bd-education" maxLength={100} value={education} onChange={(e) => setEducation(e.target.value)} className={fieldCls} placeholder="e.g. Bachelors in Computer Science" />
       </div>
 
-      <fieldset>
-        <legend className={labelCls}>Pick a demo slot<Req /></legend>
-        <div className="rounded-[12px] bg-slate-100 p-3">
-          <div className="mb-2 flex items-center justify-between">
-            <button
-              type="button"
-              aria-label="Previous month"
-              onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
-              className="grid h-7 w-7 place-items-center rounded-full text-[#0F2A52] hover:bg-white"
-            >
-              ‹
-            </button>
-            <p className="text-xs font-semibold text-[#0F2A52]">
-              {month.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
-            </p>
-            <button
-              type="button"
-              aria-label="Next month"
-              onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
-              className="grid h-7 w-7 place-items-center rounded-full text-[#0F2A52] hover:bg-white"
-            >
-              ›
-            </button>
-          </div>
-          <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-slate-400">
-            {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => <span key={i}>{d}</span>)}
-          </div>
-          <div className="mt-1 grid grid-cols-7 gap-1">
-            {Array.from({ length: firstWeekday }).map((_, i) => <span key={`b${i}`} />)}
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const d = new Date(month.getFullYear(), month.getMonth(), i + 1);
-              const past = d < todayStart;
-              const active = !!date && d.toDateString() === date.toDateString();
-              return (
+      {!isWorkshop && (
+        <>
+          <fieldset>
+            <legend className={labelCls}>Pick a demo slot<Req /></legend>
+            <div className="rounded-[12px] bg-slate-100 p-3">
+              <div className="mb-2 flex items-center justify-between">
                 <button
-                  key={i}
                   type="button"
-                  disabled={past}
-                  aria-pressed={active}
-                  onClick={() => setDate(d)}
-                  className={`h-8 rounded-full text-xs font-semibold transition-colors ${
-                    active
-                      ? "bg-[#0F2A52] text-white"
-                      : past
-                        ? "text-slate-300"
-                        : "text-[#0F2A52] hover:bg-white"
-                  }`}
+                  aria-label="Previous month"
+                  onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
+                  className="grid h-7 w-7 place-items-center rounded-full text-[#0F2A52] hover:bg-white"
                 >
-                  {i + 1}
+                  ‹
                 </button>
-              );
-            })}
-          </div>
-        </div>
-        <div className="mt-2 grid grid-cols-3 gap-2">
-          {TIMES.map((t) => {
-            const active = time === t;
-            return (
-              <button
-                key={t}
-                type="button"
-                disabled={!date}
-                aria-pressed={active}
-                onClick={() => setTime(t)}
-                className={`rounded-full px-2 py-2 text-xs font-semibold transition-colors disabled:opacity-40 ${
-                  active ? "bg-[#0F2A52] text-white" : "bg-slate-100 text-[#0F2A52] hover:bg-slate-200"
-                }`}
-              >
-                {t}
-              </button>
-            );
-          })}
-        </div>
-      </fieldset>
+                <p className="text-xs font-semibold text-[#0F2A52]">
+                  {month.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+                </p>
+                <button
+                  type="button"
+                  aria-label="Next month"
+                  onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
+                  className="grid h-7 w-7 place-items-center rounded-full text-[#0F2A52] hover:bg-white"
+                >
+                  ›
+                </button>
+              </div>
+              <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-slate-400">
+                {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => <span key={i}>{d}</span>)}
+              </div>
+              <div className="mt-1 grid grid-cols-7 gap-1">
+                {Array.from({ length: firstWeekday }).map((_, i) => <span key={`b${i}`} />)}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const d = new Date(month.getFullYear(), month.getMonth(), i + 1);
+                  const past = d < todayStart;
+                  const active = !!date && d.toDateString() === date.toDateString();
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      disabled={past}
+                      aria-pressed={active}
+                      onClick={() => setDate(d)}
+                      className={`h-8 rounded-full text-xs font-semibold transition-colors ${
+                        active
+                          ? "bg-[#0F2A52] text-white"
+                          : past
+                            ? "text-slate-300"
+                            : "text-[#0F2A52] hover:bg-white"
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {TIMES.map((t) => {
+                const active = time === t;
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    disabled={!date}
+                    aria-pressed={active}
+                    onClick={() => setTime(t)}
+                    className={`rounded-full px-2 py-2 text-xs font-semibold transition-colors disabled:opacity-40 ${
+                      active ? "bg-[#0F2A52] text-white" : "bg-slate-100 text-[#0F2A52] hover:bg-slate-200"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
 
-      <div className="flex items-center gap-2 rounded-[10px] bg-amber-100 px-3 py-2 text-xs font-medium text-amber-900">
-        <Users className="h-4 w-4 shrink-0" aria-hidden />
-        Only 4 seats left in the next cohort
-      </div>
+          <div className="flex items-center gap-2 rounded-[10px] bg-amber-100 px-3 py-2 text-xs font-medium text-amber-900">
+            <Users className="h-4 w-4 shrink-0" aria-hidden />
+            Only 4 seats left in the next cohort
+          </div>
+        </>
+      )}
 
       {formError && <p role="alert" className="text-xs text-[#FF6B6B]">{formError}</p>}
 

@@ -3,6 +3,7 @@ import LandingPage from './features/landing/LandingPage.jsx';
 import { AboutPage } from './features/landing/AboutPage.jsx';
 import { ContactPage } from './features/landing/ContactPage.jsx';
 import { CoursesPage } from './features/landing/CoursesPage.jsx';
+import { WorkshopsPage } from './features/landing/WorkshopsPage.jsx';
 
 import { AdminLoginPage } from './features/auth/AdminLoginPage.jsx';
 import { ResetPasswordPage } from './features/auth/ResetPasswordPage.jsx';
@@ -87,6 +88,7 @@ function App() {
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/courses" element={<CoursesPage />} />
       <Route path="/programs/:track" element={<ProgramTrack />} />
+      <Route path="/workshops" element={<WorkshopsPage />} />
       <Route path="/campus" element={<CampusHub />} />
       <Route path="/campus/college" element={<CampusCollege />} />
 
