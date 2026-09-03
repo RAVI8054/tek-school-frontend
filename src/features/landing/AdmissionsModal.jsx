@@ -19,11 +19,6 @@ export function AdmissionsModal({ open, onClose }) {
   const [phone, setPhone] = useState("");
   const [education, setEducation] = useState("");
   const [when, setWhen] = useState("");
-  const [month, setMonth] = useState(() => {
-    const n = new Date();
-    return new Date(n.getFullYear(), n.getMonth(), 1);
-  });
-  const [date, setDate] = useState(null);
   
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -43,16 +38,9 @@ export function AdmissionsModal({ open, onClose }) {
 
   const emailInvalid = email.length > 0 && !EMAIL_RE.test(email.trim());
   
-  const todayStart = useMemo(() => {
-    const n = new Date();
-    return new Date(n.getFullYear(), n.getMonth(), n.getDate());
-  }, []);
-  const firstWeekday = new Date(month.getFullYear(), month.getMonth(), 1).getDay();
-  const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
-  
   const complete = useMemo(
-    () => !!program && !!when && !!date && name.trim().length >= 2 && EMAIL_RE.test(email.trim()) && phone.trim().length >= 6,
-    [program, when, date, name, email, phone],
+    () => !!program && !!when && name.trim().length >= 2 && EMAIL_RE.test(email.trim()) && phone.trim().length >= 6,
+    [program, when, name, email, phone],
   );
 
   async function onSubmit(e) {
@@ -64,9 +52,6 @@ export function AdmissionsModal({ open, onClose }) {
     }
     setSubmitting(true);
     try {
-      const offset = date.getTimezoneOffset() * 60000;
-      const localISOTime = (new Date(date.getTime() - offset)).toISOString().split("T")[0];
-      
       const payload = {
         name,
         email,
@@ -74,9 +59,9 @@ export function AdmissionsModal({ open, onClose }) {
         program,
         education: education.trim() || undefined,
         inquiry_type: "talk to counselor",
+        best_time_to_call: when,
         slot: {
-          type: "scheduled",
-          dateString: localISOTime,
+          type: "callback",
           timePreference: when
         }
       };
@@ -173,32 +158,6 @@ export function AdmissionsModal({ open, onClose }) {
             <input id="ad-education" maxLength={100} value={education} onChange={(e) => setEducation(e.target.value)} className={fieldCls} placeholder="e.g. Bachelors in Computer Science" />
           </div>
 
-          <fieldset>
-            <legend className={labelCls}>Pick a date to call *</legend>
-            <div className="rounded-[12px] bg-[#F3F4F6] p-3">
-              <div className="mb-2 flex items-center justify-between">
-                <button type="button" onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))} className="grid h-7 w-7 place-items-center rounded-full text-[#0F2A52] hover:bg-white">‹</button>
-                <p className="text-xs font-semibold text-[#0F2A52]">{month.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</p>
-                <button type="button" onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))} className="grid h-7 w-7 place-items-center rounded-full text-[#0F2A52] hover:bg-white">›</button>
-              </div>
-              <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-[#9CA3AF]">
-                {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => <span key={i}>{d}</span>)}
-              </div>
-              <div className="mt-1 grid grid-cols-7 gap-1">
-                {Array.from({ length: firstWeekday }).map((_, i) => <span key={`b${i}`} />)}
-                {Array.from({ length: daysInMonth }).map((_, i) => {
-                  const d = new Date(month.getFullYear(), month.getMonth(), i + 1);
-                  const past = d < todayStart;
-                  const active = !!date && d.toDateString() === date.toDateString();
-                  return (
-                    <button key={i} type="button" disabled={past} onClick={() => setDate(d)} className={`h-8 rounded-full text-xs font-semibold transition-colors ${active ? "bg-[#0F2A52] text-white" : past ? "text-[#D1D5DB]" : "text-[#0F2A52] hover:bg-white"}`}>
-                      {i + 1}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </fieldset>
 
           <fieldset>
             <legend className={labelCls}>Best time to call *</legend>

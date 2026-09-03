@@ -211,6 +211,38 @@ export async function updateEnquiryStatus(id, data) {
 }
 
 /**
+ * Create or update a slot for a given date (Admin only).
+ * @param {{ date: string, times: string[], label?: string }} data
+ */
+export async function createSlot(data) {
+  return fetchApi(`/enquiry/slots`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Get all available (future) slots — public.
+ */
+export async function getAvailableSlots() {
+  return fetchApi(`/enquiry/slots`);
+}
+
+/**
+ * Get all slots including past dates — Admin only.
+ */
+export async function getAllSlotsAdmin() {
+  return fetchApi(`/enquiry/slots/all`);
+}
+
+/**
+ * Delete a slot by id (Admin only).
+ */
+export async function deleteSlot(id) {
+  return fetchApi(`/enquiry/slots/${id}`, { method: 'DELETE' });
+}
+
+/**
  * Create a new enquiry (e.g. from the frontend landing pages).
  * @param {Object} data - The enquiry data
  */

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Shell } from "../../components/layout/Shell.jsx";
-import { BookDemoDrawer } from "./BookDemoDrawer.jsx";
+import { BookDemoModal } from "./BookDemoModal.jsx";
+import { AdmissionsModal } from "./AdmissionsModal.jsx";
 import { LeadModal } from "./LeadModal.jsx";
 import { FLAGSHIP_TRACKS, findTrack } from "../../lib/flagship-programs.js";
 import { Squiggle, Asterisk, Arrow } from "../../components/ui/Doodles.jsx";
@@ -296,7 +297,7 @@ function SectionNav() {
   );
 }
 
-function StickyEnroll({ track }) {
+function StickyEnroll({ track, onBookDemo, onAdmissions }) {
   const [show, setShow] = useState(false);
   const [enrollOpen, setEnrollOpen] = useState(false);
 
@@ -310,21 +311,30 @@ function StickyEnroll({ track }) {
   return (
     <div className={`fixed inset-x-0 bottom-0 z-40 transition-transform duration-300 ${show ? "translate-y-0" : "translate-y-full"}`}>
       <div className="bg-[#0F2A52] text-white shadow-[0_-10px_30px_rgba(0,0,0,0.15)]">
-        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-3 px-4 md:px-10 py-3">
+        <div className="mx-auto flex w-full max-w-[1360px] flex-wrap items-center gap-3 px-4 md:px-8 py-3">
           <span className="text-sm font-semibold">
             {track.title} · <span className="opacity-60 line-through">₹{track.price.original.toLocaleString("en-IN")}</span> ₹{track.price.total.toLocaleString("en-IN")}
           </span>
           <span className="rounded-full bg-white/12 px-3 py-1 text-xs">Pay in EMI</span>
-          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white/12 px-3 py-1 text-xs">
+          <span className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-white/12 px-3 py-1 text-xs">
             <Users className="h-3.5 w-3.5" /> {track.seatsLeft} seats left · {track.nextCohort}
           </span>
-          <button
-            type="button"
-            onClick={() => setEnrollOpen(true)}
-            className="ml-auto rounded-full bg-white text-[#0F2A52] px-5 py-2.5 text-sm font-semibold whitespace-nowrap"
-          >
-            Enroll now
-          </button>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={onBookDemo}
+              className="rounded-full bg-white text-[#0F2A52] px-5 py-2.5 text-sm font-semibold whitespace-nowrap hover:bg-white/90"
+            >
+              Book demo
+            </button>
+            <button
+              type="button"
+              onClick={onAdmissions}
+              className="hidden sm:inline-block rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold whitespace-nowrap hover:bg-white/10"
+            >
+              Talk to admissions
+            </button>
+          </div>
           <LeadModal
             open={enrollOpen}
             onClose={() => setEnrollOpen(false)}
@@ -347,6 +357,7 @@ export function ProgramTrack() {
 
   const [demoOpen, setDemoOpen] = useState(false);
   const [reserveOpen, setReserveOpen] = useState(false);
+  const [admissionsOpen, setAdmissionsOpen] = useState(false);
 
   if (!track) {
     return (
@@ -752,16 +763,9 @@ export function ProgramTrack() {
       </Section>
 
       {/* Sticky enroll */}
-      <StickyEnroll track={track} />
+      <StickyEnroll track={track} onBookDemo={() => setDemoOpen(true)} onAdmissions={() => setAdmissionsOpen(true)} />
 
-      <BookDemoDrawer
-        open={demoOpen}
-        onClose={() => setDemoOpen(false)}
-        variant="modal"
-        presetProgram={track.title}
-        heading="Register for free demo"
-        workshopTitle={track.title}
-      />
+      <BookDemoModal open={demoOpen} onClose={() => setDemoOpen(false)} presetProgram={track.title} />
 
       <LeadModal
         open={reserveOpen}
@@ -773,6 +777,8 @@ export function ProgramTrack() {
         institutionType={track.title}
         cta="Reserve my seat"
       />
+
+      <AdmissionsModal open={admissionsOpen} onClose={() => setAdmissionsOpen(false)} />
     </Shell>
   );
 }

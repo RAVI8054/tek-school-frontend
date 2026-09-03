@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Shell } from '../../components/layout/Shell.jsx';
 import { Hero } from './Hero.jsx';
 import { BookDemoModal } from './BookDemoModal.jsx';
+import { AdmissionsModal } from './AdmissionsModal.jsx';
 import { Reveal } from '../../components/ui/Reveal.jsx';
 import { Asterisk, Loop } from '../../components/ui/Doodles.jsx';
 import {
@@ -220,11 +221,12 @@ function ProgramCard({ p, index }) {
 
 export default function LandingPage() {
   const [applyOpen, setApplyOpen] = useState(false);
+  const [admissionsOpen, setAdmissionsOpen] = useState(false);
 
   return (
     <Shell>
       {/* HERO */}
-      <Hero onApply={() => setApplyOpen(true)} onAdmissions={() => setApplyOpen(true)} />
+      <Hero onApply={() => setApplyOpen(true)} onAdmissions={() => setAdmissionsOpen(true)} />
 
       {/* STAT CARDS */}
       <section className="px-4 md:px-10 -mt-4 pb-8">
@@ -374,6 +376,7 @@ export default function LandingPage() {
       </section>
 
       <BookDemoModal open={applyOpen} onClose={() => setApplyOpen(false)} />
+      <AdmissionsModal open={admissionsOpen} onClose={() => setAdmissionsOpen(false)} />
     </Shell>
   );
 }
