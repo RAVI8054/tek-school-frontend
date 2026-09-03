@@ -3,7 +3,6 @@ import { Menu, X, Package, Layout, Brain, Rocket, Target, Calendar, Home as Home
 import { useEffect, useRef, useState } from 'react';
 import { LogoLockup } from '../ui/Logo.jsx';
 import { MegaMenu } from './MegaMenu.jsx';
-import { openSignIn } from '../../lib/auth.js';
 import { useStudentAuthStore } from "../../store/useStudentAuthStore.js";
 import heroStudents from "../../assets/hero-students.jpg";
 
@@ -158,12 +157,14 @@ export function TopNav() {
               )}
             </div>
           ) : (
-            <button
-              onClick={openSignIn}
-              className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+            <Link
+              to="/student/login"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors inline-block text-center"
             >
               Sign In
-            </button>
+            </Link>
           )}
           <button
             aria-label="Menu"

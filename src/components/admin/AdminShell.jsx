@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useCallback } from 'react';
 import {
   LayoutGrid, Users, GraduationCap, ClipboardCheck, Briefcase, BookOpen, Inbox, UserSquare, Wallet, Megaphone,
-  Settings2, Shield, ChevronDown, Search, Bell, LogOut, FileEdit, Palette, Send, Sparkles, PanelLeftClose, PanelLeftOpen, ClipboardList, Menu, X,
+  Settings2, Shield, ChevronDown, Search, Bell, LogOut, FileEdit, Palette, Send, Sparkles, PanelLeftClose, PanelLeftOpen, ClipboardList, Menu, X, Calendar,
 } from 'lucide-react';
 import { LogoLockup } from '../ui/Logo.jsx';
 import { ROLE_ACCESS, AUDIT } from '../../lib/adminData.js';
@@ -28,6 +28,7 @@ const NAV_GROUPS = [
   { label: 'Learning', items: [
     { key: 'assignments', to: '/admin/assignments', label: 'Assignments', icon: ClipboardCheck },
     { key: 'content', to: '/admin/content', label: 'Curriculum', icon: BookOpen },
+    { key: 'workshops', to: '/admin/workshops', label: 'Workshops', icon: Calendar },
   ] },
   { label: 'Growth', items: [
     { key: 'placements', to: '/admin/placements', label: 'Placements', icon: Briefcase, badge: 'AI' },

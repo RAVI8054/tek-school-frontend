@@ -439,3 +439,50 @@ export async function applyStudentJob(jobId) {
   });
 }
 
+// ============================================================================
+// WORKSHOP APIs
+// ============================================================================
+
+export async function getWorkshops() {
+  return fetchApi(`/workshops`);
+}
+
+export async function getWorkshopById(id) {
+  return fetchApi(`/workshops/${id}`);
+}
+
+export async function createAdminWorkshop(data) {
+  return fetchApi(`/workshops`, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+export async function bookWorkshop(id, paymentData = {}) {
+  return fetchApi(`/workshops/${id}/book`, {
+    method: 'POST',
+    body: JSON.stringify(paymentData)
+  });
+}
+
+export async function uploadWorkshopImage(file) {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const url = `${API_BASE}/workshops/upload-image`;
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    body: formData,
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || `Image upload failed with status ${response.status}`);
+  }
+
+  return response.json();
+}
+
+

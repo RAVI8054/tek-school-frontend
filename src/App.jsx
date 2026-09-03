@@ -10,6 +10,7 @@ import { ResetPasswordPage } from './features/auth/ResetPasswordPage.jsx';
 import { SignInPanel } from './components/layout/SignInPanel.jsx';
 import { ProtectedRoute } from './components/layout/ProtectedRoute.jsx';
 import { StudentProtectedRoute } from './components/layout/StudentProtectedRoute.jsx';
+import { StudentLoginPage } from './features/auth/StudentLoginPage.jsx';
 import { ProgramTrack } from './features/landing/ProgramTrack.jsx';
 import { CampusHub } from './features/landing/CampusHub.jsx';
 import { CampusCollege } from './features/landing/CampusCollege.jsx';
@@ -23,6 +24,8 @@ import { CohortsPage } from './features/admin/CohortsPage.jsx';
 import { InstructorsPage } from './features/admin/instructors/InstructorsPage.jsx';
 import { FinancePage } from './features/admin/FinancePage.jsx';
 import { StudioPage } from './features/admin/StudioPage.jsx';
+import { AdminWorkshopsPage } from './features/admin/workshops/AdminWorkshopsPage.jsx';
+import { CreateWorkshopPage } from './features/admin/workshops/CreateWorkshopPage.jsx';
 
 // Instructor Portal
 import { InstructorDashboard } from './features/instructor/dashboard/InstructorDashboard.jsx';
@@ -96,6 +99,9 @@ function App() {
       
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
+      {/* Student Login Route */}
+      <Route path="/student/login" element={<StudentLoginPage />} />
+
       {/* Admin Login Route (Unprotected) */}
       <Route path="/admin/login" element={<AdminLoginPage />} />
 
@@ -121,6 +127,8 @@ function App() {
         <Route path="outreach" element={<OutreachPage />} />
         <Route path="pages" element={<PagesPage />} />
         <Route path="studio" element={<StudioPage />} />
+        <Route path="workshops" element={<AdminWorkshopsPage />} />
+        <Route path="workshops/new" element={<CreateWorkshopPage />} />
         <Route path="marketing" element={<Placeholder title="Campaigns" />} />
         <Route path="community" element={<AdminCommunityPage />} />
         <Route path="community/blocked" element={<BlockedStudentsPage />} />
