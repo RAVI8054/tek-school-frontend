@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Users, Hash, Edit2, Trash2, Calendar, Shield, Save } from 'lucide-react';
+import { Users, Edit2, Trash2, Calendar, Shield, Save } from 'lucide-react';
 
-export function CommunityList({ channels, selectedChannelId, onSelect, onEdit, onDelete }) {
+export function CommunityList({ channels, selectedChannelId, onSelect, onEdit, onDelete, pagination, onPageChange }) {
   const [editingChannel, setEditingChannel] = useState(null);
   const [editForm, setEditForm] = useState({ name: '', description: '' });
 
@@ -32,9 +32,10 @@ export function CommunityList({ channels, selectedChannelId, onSelect, onEdit, o
         {channels.length === 0 ? (
           <div className="p-8 text-center text-slate-400">No channels found.</div>
         ) : (
-          channels.map((channel) => {
+          channels.map((channel, idx) => {
             const isSelected = selectedChannelId === channel._id;
             const isEditing = editingChannel === channel._id;
+            const serialNumber = (pagination ? (pagination.page - 1) * pagination.limit : 0) + idx + 1;
 
             return (
               <div
@@ -81,8 +82,8 @@ export function CommunityList({ channels, selectedChannelId, onSelect, onEdit, o
                   <>
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600'} transition-colors`}>
-                          <Hash className="w-4 h-4" />
+                        <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600'} transition-colors flex items-center justify-center font-bold text-xs min-w-[28px]`}>
+                          {serialNumber}.
                         </div>
                         <h4 className="font-semibold text-slate-900 text-sm truncate">{channel.name}</h4>
                       </div>
@@ -130,6 +131,27 @@ export function CommunityList({ channels, selectedChannelId, onSelect, onEdit, o
           })
         )}
       </div>
+      {pagination && pagination.pages > 1 && (
+        <div className="border-t border-slate-100 p-3 bg-slate-50 flex justify-between items-center text-[11px] font-medium text-slate-500 shrink-0">
+          <span>Showing page {pagination.page} of {pagination.pages} ({pagination.total} total)</span>
+          <div className="flex gap-1">
+            <button 
+              onClick={() => onPageChange(pagination.page - 1)} 
+              disabled={pagination.page <= 1}
+              className="px-2 py-1 rounded bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Prev
+            </button>
+            <button 
+              onClick={() => onPageChange(pagination.page + 1)} 
+              disabled={pagination.page >= pagination.pages}
+              className="px-2 py-1 rounded bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

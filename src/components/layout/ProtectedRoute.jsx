@@ -1,8 +1,9 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext.jsx';
+import { useAuthStore } from '../../store/useAuthStore.js';
+
 
 export function ProtectedRoute({ allowedRoles }) {
-  const { user, isInitializing } = useAuth();
+  const { user, isInitializing } = useAuthStore();
 
   if (isInitializing) {
     return (

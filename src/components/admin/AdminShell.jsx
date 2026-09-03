@@ -7,7 +7,7 @@ import {
 import { LogoLockup } from '../ui/Logo.jsx';
 import { ROLE_ACCESS, AUDIT } from '../../lib/adminData.js';
 import { AdminAI } from './AdminAI.jsx';
-import { useAuth } from '../../context/AuthContext.jsx';
+import { useAuthStore } from '../../store/useAuthStore.js';
 
 const NAV_GROUPS = [
   { label: 'Overview', items: [
@@ -214,7 +214,7 @@ export function AdminShell({ title, children, actions, fullHeight, hideDefaultSe
   const location = useLocation();
   const path = location.pathname;
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuthStore();
 
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);

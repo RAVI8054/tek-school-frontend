@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { LogoLockup } from '../ui/Logo.jsx';
 import { MegaMenu } from './MegaMenu.jsx';
 import { openSignIn } from '../../lib/auth.js';
-import { useStudentAuth } from "../../context/StudentAuthContext.jsx";
+import { useStudentAuthStore } from "../../store/useStudentAuthStore.js";
 import heroStudents from "../../assets/hero-students.jpg";
 
 const programsRows = [
@@ -34,7 +34,7 @@ const NAV_ITEMS = [
 export function TopNav() {
   const location = useLocation();
   const path = location.pathname;
-  const { user, logout } = useStudentAuth();
+  const { user, logout } = useStudentAuthStore();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);

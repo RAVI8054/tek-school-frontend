@@ -132,8 +132,15 @@ export function TekCampusEnquiryPage() {
 
       {/* Board */}
       {loading ? (
-        <div className="flex-1 flex items-center justify-center text-sm text-slate-400">
-          Loading enquiries…
+        <div className="flex-1 flex gap-3 h-full px-2 pb-2">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex-1 bg-slate-50/50 rounded-xl border border-slate-200 flex flex-col p-2 gap-2">
+              <div className="h-8 animate-pulse bg-slate-200 rounded-lg shrink-0 mb-1 w-2/3"></div>
+              {[...Array(3)].map((_, j) => (
+                <div key={j} className="h-28 animate-pulse bg-white border border-slate-200 rounded-lg shrink-0 shadow-sm"></div>
+              ))}
+            </div>
+          ))}
         </div>
       ) : (
         <div className="flex-1 overflow-hidden">

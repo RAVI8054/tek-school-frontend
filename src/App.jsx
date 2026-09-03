@@ -9,8 +9,6 @@ import { AdminLoginPage } from './features/auth/AdminLoginPage.jsx';
 import { ResetPasswordPage } from './features/auth/ResetPasswordPage.jsx';
 import { SignInPanel } from './components/layout/SignInPanel.jsx';
 import { ProtectedRoute } from './components/layout/ProtectedRoute.jsx';
-import { AuthProvider } from './context/AuthContext.jsx';
-import { StudentAuthProvider } from './context/StudentAuthContext.jsx';
 import { StudentProtectedRoute } from './components/layout/StudentProtectedRoute.jsx';
 import { ProgramTrack } from './features/landing/ProgramTrack.jsx';
 import { CampusHub } from './features/landing/CampusHub.jsx';
@@ -40,7 +38,9 @@ import { FinanceAuditLogsPage } from './features/finance/audit/FinanceAuditLogsP
 
 import { PagesPage } from './features/admin/PagesPage.jsx';
 import { OutreachPage } from './features/admin/OutreachPage.jsx';
-import { PlacementsPage } from './features/admin/PlacementsPage.jsx';
+import { PlacementsPage } from './features/admin/placements/PlacementsPage.jsx';
+import { RejectedPlacementsPage } from './features/admin/placements/RejectedPlacementsPage.jsx';
+import { JobsPage } from './features/admin/placements/JobsPage.jsx';
 import { EnquiriesPage } from './features/admin/enquiry/EnquiriesPage.jsx';
 import { AdmissionEnquiryPage } from './features/admin/enquiry/AdmissionEnquiryPage.jsx';
 import { TekCampusEnquiryPage } from './features/admin/enquiry/TekCampusEnquiryPage.jsx';
@@ -79,8 +79,7 @@ import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
-    <StudentAuthProvider>
-    <AuthProvider>
+    <>
     <Routes>
       {/* Landing Page */}
       <Route path="/" element={<LandingPage />} />
@@ -114,7 +113,11 @@ function App() {
           <Route path="admission" element={<AdmissionEnquiryPage />} />
           <Route path="tekcampus" element={<TekCampusEnquiryPage />} />
         </Route>
-        <Route path="placements" element={<PlacementsPage />} />
+        <Route path="placements">
+          <Route index element={<PlacementsPage />} />
+          <Route path="rejected" element={<RejectedPlacementsPage />} />
+          <Route path="jobs" element={<JobsPage />} />
+        </Route>
         <Route path="outreach" element={<OutreachPage />} />
         <Route path="pages" element={<PagesPage />} />
         <Route path="studio" element={<StudioPage />} />
@@ -170,8 +173,7 @@ function App() {
     </Routes>
     <Toaster />
     <SignInPanel />
-    </AuthProvider>
-    </StudentAuthProvider>
+    </>
   );
 }
 

@@ -2,11 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { LogoLockup } from "../../components/ui/Logo.jsx";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuthStore } from "../../store/useAuthStore.js";
 
 export function AdminLoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login } = useAuthStore();
   
   const [email, setEmail] = useState("tekadmin@gmail.com");
   const [password, setPassword] = useState("tekadmin");

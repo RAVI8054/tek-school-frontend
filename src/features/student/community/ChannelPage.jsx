@@ -7,7 +7,7 @@ import {
   getCommunityChannels,
 } from "../../../lib/api";
 import { pushToast } from "../../../lib/action-bus";
-import { useStudentAuth } from "../../../context/StudentAuthContext";
+import { useStudentAuthStore } from "../../../store/useStudentAuthStore.js";
 import {
   Send,
   ThumbsUp,
@@ -22,7 +22,7 @@ import {
 
 export default function ChannelPage() {
   const { channelId } = useParams();
-  const { user: currentUser } = useStudentAuth();
+  const { user: currentUser } = useStudentAuthStore();
   const myId = (currentUser?._id || currentUser?.id || "").toString();
 
   const [channel, setChannel] = useState(null);

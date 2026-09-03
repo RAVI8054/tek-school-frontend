@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { X, Sparkles, Mail, CheckCircle2, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useOpenSignInListener } from "../../lib/auth.js";
-import { useStudentAuth } from "../../context/StudentAuthContext.jsx";
+import { useStudentAuthStore } from "../../store/useStudentAuthStore.js";
 import { LogoLockup } from "../ui/Logo.jsx";
 
 export function SignInPanel() {
@@ -16,7 +16,7 @@ export function SignInPanel() {
   const [showJoin, setShowJoin] = useState(false);
   const firstFieldRef = useRef(null);
 
-  const { login } = useStudentAuth();
+  const { login } = useStudentAuthStore();
 
   useOpenSignInListener(() => {
     setOpen(true);

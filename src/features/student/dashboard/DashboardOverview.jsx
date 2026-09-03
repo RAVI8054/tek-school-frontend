@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useStudentAuth } from "../../../context/StudentAuthContext.jsx";
+import { useStudentAuthStore } from "../../../store/useStudentAuthStore.js";
 import {
   CLASSES,
   ASSIGNMENTS,
@@ -34,7 +34,7 @@ import {
 const STAGES = ["Applied", "Screening", "Interview", "Offer"];
 
 export function DashboardOverview() {
-  const { user: session } = useStudentAuth();
+  const { user: session } = useStudentAuthStore();
   if (!session) return null;
 
   const upcoming = CLASSES.filter((c) => c.status === "upcoming").sort((a, b) => a.date.localeCompare(b.date));

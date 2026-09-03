@@ -278,8 +278,8 @@ export async function reactToChannelMessage(messageId, action) {
 // ADMIN COMMUNITY APIs
 // ============================================================================
 
-export async function getAdminCommunityChannels(search = '') {
-  const query = new URLSearchParams();
+export async function getAdminCommunityChannels(search = '', page = 1, limit = 10) {
+  const query = new URLSearchParams({ page, limit });
   if (search) query.append('search', search);
   return fetchApi(`/admin/community/channels?${query.toString()}`);
 }
@@ -364,3 +364,78 @@ export async function uploadStudentAvatar(file) {
 
   return response.json();
 }
+
+// ============================================================================
+// ADMIN PLACEMENTS APIs
+// ============================================================================
+
+export async function getAdminApplications() {
+  return fetchApi(`/admin/placements/applications`);
+}
+
+export async function updateAdminApplicationStage(id, data) {
+  return fetchApi(`/admin/placements/applications/stage`, {
+    method: 'PATCH',
+    body: JSON.stringify({ id, ...data })
+  });
+}
+
+export async function getAdminJobs() {
+  return fetchApi(`/admin/placements/jobs`);
+}
+
+export async function createAdminJob(data) {
+  return fetchApi(`/admin/placements/jobs`, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+export async function updateAdminJob(id, data) {
+  return fetchApi(`/admin/placements/jobs`, {
+    method: 'PATCH',
+    body: JSON.stringify({ id, ...data })
+  });
+}
+
+export async function getAdminHiringPartners() {
+  return fetchApi(`/admin/placements/partners`);
+}
+
+export async function createAdminHiringPartner(data) {
+  return fetchApi(`/admin/placements/partners`, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+// ============================================================================
+// STUDENT PLACEMENTS APIs
+// ============================================================================
+
+export async function getStudentPlacementProfile() {
+  return fetchApi(`/student/placements/profile`);
+}
+
+export async function updateStudentPlacementProfile(data) {
+  return fetchApi(`/student/placements/profile`, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  });
+}
+
+export async function getStudentJobs() {
+  return fetchApi(`/student/placements/jobs`);
+}
+
+export async function getStudentApplications() {
+  return fetchApi(`/student/placements/applications`);
+}
+
+export async function applyStudentJob(jobId) {
+  return fetchApi(`/student/placements/applications`, {
+    method: 'POST',
+    body: JSON.stringify({ jobId })
+  });
+}
+

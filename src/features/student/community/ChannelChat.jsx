@@ -3,10 +3,10 @@ import { getChannelMessages, sendChannelMessage, reactToChannelMessage } from ".
 import { Avatar } from "../../../components/Avatar";
 import { ArrowLeft, Send, ThumbsUp, ThumbsDown, MessageSquare, Reply, X, Hash } from "lucide-react";
 import { pushToast } from "../../../lib/action-bus";
-import { useStudentAuth } from "../../../context/StudentAuthContext";
+import { useStudentAuthStore } from "../../../store/useStudentAuthStore.js";
 
 export function ChannelChat({ channel, onBack }) {
-  const { user: currentUser } = useStudentAuth();
+  const { user: currentUser } = useStudentAuthStore();
   const myId = (currentUser?._id || currentUser?.id || "").toString();
 
   const [messages, setMessages] = useState([]);

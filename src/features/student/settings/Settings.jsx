@@ -1,6 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
-import { useStudentAuth } from "../../../context/StudentAuthContext.jsx";
+import { useStudentAuthStore } from "../../../store/useStudentAuthStore.js";
 import { openAction, pushToast } from "../../../lib/action-bus";
 import { LogOut, SlidersHorizontal, Bell, Lock, CreditCard, Palette, ShieldCheck, Download, Trash2, Check, Settings as SettingsIcon, ChevronRight, UserRound } from "lucide-react";
 
@@ -29,7 +29,7 @@ const TAB_DESC = {
 
 
 function SettingsPage() {
-  const { user: session, logout: signOut } = useStudentAuth();
+  const { user: session, logout: signOut } = useStudentAuthStore();
   const navigate = useNavigate();
   const [tab, setTab] = useState("account");
   const [prefs, setPrefs] = useState({ classReminders: true, weeklyDigest: true, placementAlerts: true, communityPings: false, marketingEmails: false, smsReminders: true, autoplay: true, captions: false });

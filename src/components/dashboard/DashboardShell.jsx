@@ -2,7 +2,7 @@ import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { LayoutDashboard, BookOpen, Briefcase, MessageCircle, Settings, LogOut, Menu, X, Bell, HelpCircle, ChevronDown, GraduationCap, User } from 'lucide-react';
 import { LogoLockup } from '../ui/Logo.jsx';
-import { useStudentAuth } from '../../context/StudentAuthContext.jsx';
+import { useStudentAuthStore } from '../../store/useStudentAuthStore.js';
 import { getStudentProfile } from '../../lib/api.js';
 import { ActionModals } from '../ActionModals.jsx';
 import { NotificationDrawer, SEED_NOTIFICATIONS } from './NotificationDrawer.jsx';
@@ -23,7 +23,7 @@ const SECONDARY = [
 const ALL_NAV = [...PRIMARY, ...SECONDARY];
 
 export function DashboardShell() {
-  const { user, logout } = useStudentAuth();
+  const { user, logout } = useStudentAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname;

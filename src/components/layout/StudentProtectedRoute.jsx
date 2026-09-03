@@ -1,8 +1,8 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useStudentAuth } from '../../context/StudentAuthContext.jsx';
+import { useStudentAuthStore } from '../../store/useStudentAuthStore.js';
 
 export function StudentProtectedRoute() {
-  const { user, isInitializing } = useStudentAuth();
+  const { user, isInitializing } = useStudentAuthStore();
 
   if (isInitializing) {
     return (

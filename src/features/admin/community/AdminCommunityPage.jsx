@@ -17,13 +17,16 @@ export function AdminCommunityPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedChannel, setSelectedChannel] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState(null);
 
-  const fetchChannels = async (search = '') => {
+  const fetchChannels = async (search = '', pageNum = 1) => {
     setLoading(true);
     try {
-      const res = await getAdminCommunityChannels(search);
+      const res = await getAdminCommunityChannels(search, pageNum);
       if (res.status === 'success') {
         setChannels(res.data.channels);
+        setPagination(res.pagination || null);
       }
     } catch (error) {
       console.error(error);
@@ -35,18 +38,24 @@ export function AdminCommunityPage() {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchChannels(searchQuery);
+      setPage(1);
+      fetchChannels(searchQuery, 1);
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+    fetchChannels(searchQuery, newPage);
+  };
 
   const handleEditChannel = async (channelId, data) => {
     try {
       const res = await editAdminCommunityChannel(channelId, data);
       if (res.status === 'success') {
         toast.success('Channel updated successfully');
-        fetchChannels(searchQuery);
+        fetchChannels(searchQuery, page);
       }
     } catch (error) {
       console.error(error);
@@ -68,7 +77,7 @@ export function AdminCommunityPage() {
     if (selectedChannel?._id === deletingChannel._id) {
       setSelectedChannel(null);
     }
-    fetchChannels(searchQuery);
+    fetchChannels(searchQuery, page);
     setDeletingChannel(null);
   };
 
@@ -106,17 +115,21 @@ export function AdminCommunityPage() {
       <div className="flex h-full gap-4">
         <div className={`flex-1 transition-all ${selectedChannel ? 'hidden md:block md:max-w-md lg:max-w-lg' : ''}`}>
           {loading ? (
-            <div className="flex justify-center items-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <div className="flex flex-col gap-2 p-2">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="animate-pulse bg-slate-100 rounded-lg h-[92px] w-full border border-slate-200"></div>
+              ))}
             </div>
           ) : (
             <CommunityList
-              channels={channels}
-              selectedChannelId={selectedChannel?._id}
-              onSelect={setSelectedChannel}
-              onEdit={handleEditChannel}
-              onDelete={(channelId) => setDeletingChannel(channels.find(c => c._id === channelId))}
-            />
+            channels={channels}
+            selectedChannelId={selectedChannel?._id}
+            onSelect={setSelectedChannel}
+            onEdit={handleEditChannel}
+            onDelete={setDeletingChannel}
+            pagination={pagination}
+            onPageChange={handlePageChange}
+          />
           )}
         </div>
 
