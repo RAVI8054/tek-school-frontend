@@ -5,11 +5,13 @@ import { WorkshopDrawer } from "./WorkshopDrawer.jsx";
 import { LeadModal } from "../LeadModal.jsx";
 import { WorkshopCard } from "./WorkshopCard.jsx";
 import { getWorkshops } from "../../../lib/api.js";
+import { processPaymentFlow } from "../../../lib/razorpay.js";
+import { pushToast } from "../../../lib/actionBus.js";
 
 export function WorkshopsPage() {
   const [active, setActive] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [reserve, setReserve] = useState(null);
+  const [enquiry, setEnquiry] = useState(null);
   const [workshops, setWorkshops] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,6 +32,8 @@ export function WorkshopsPage() {
           seats: w.totalSeats,
           seatsLeft: w.availableSeats,
           price: w.isFree ? 'Free' : `₹${w.price?.amount || 0}`,
+          rawPrice: w.price?.amount || 0,
+          isFree: w.isFree,
           host: w.host?.userId?.name || 'Instructor',
           hostRole: w.host?.role || 'Faculty',
           image: w.imageUrl,
@@ -64,6 +68,27 @@ export function WorkshopsPage() {
   const handleDetails = useCallback((workshop) => {
     setActive(workshop);
     setShowForm(false);
+  }, []);
+
+  const handleReserve = useCallback(async (workshop) => {
+    if (workshop.isFree || workshop.rawPrice === 0) {
+      setEnquiry(workshop);
+      return;
+    }
+    
+    try {
+      await processPaymentFlow({
+        paymentFor: 'Workshop',
+        itemId: workshop.id,
+        amount: workshop.rawPrice,
+        description: `Reserve Seat - ${workshop.title}`,
+      });
+      
+      pushToast("Seat reserved successfully!");
+    } catch (err) {
+      console.error(err);
+      pushToast(err.message || 'Payment failed', 'error');
+    }
   }, []);
 
   const totalSeatsLeft = workshops.reduce((a, w) => a + w.seatsLeft, 0);
@@ -114,7 +139,8 @@ export function WorkshopsPage() {
                 key={w.id}
                 workshop={w}
                 onDetails={handleDetails}
-                onReserve={setReserve}
+                onEnquiry={setEnquiry}
+                onReserve={handleReserve}
               />
             ))
           )}
@@ -124,14 +150,14 @@ export function WorkshopsPage() {
       <WorkshopDrawer workshop={active} showForm={showForm} onShowForm={setShowForm} onClose={closeModal} />
 
       <LeadModal
-        open={!!reserve}
-        onClose={() => setReserve(null)}
-        badge={reserve ? `${reserve.seatsLeft} seats left` : undefined}
-        title="Reserve your seat"
-        subtitle={reserve ? `${reserve.title} · ${reserve.date}, ${reserve.time}` : undefined}
-        interest={reserve ? `Workshop — ${reserve.title}` : "Workshop"}
-        institutionType="Workshop booking"
-        cta="Confirm my seat"
+        open={!!enquiry}
+        onClose={() => setEnquiry(null)}
+        badge={enquiry ? `${enquiry.seatsLeft} seats left` : undefined}
+        title="Enquiry"
+        subtitle={enquiry ? `${enquiry.title} · ${enquiry.date}, ${enquiry.time}` : undefined}
+        interest={enquiry ? `Workshop Enquiry — ${enquiry.title}` : "Workshop"}
+        institutionType="Workshop enquiry"
+        cta="Send Enquiry"
       />
     </Shell>
   );

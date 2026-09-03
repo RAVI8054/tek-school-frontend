@@ -4,6 +4,7 @@
  * Guarantees the Razorpay <script> is injected only ONCE no matter how many
  * components call loadRazorpay() concurrently.
  */
+import { initiatePayment, verifyPayment } from './api.js';
 
 const RAZORPAY_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 
@@ -83,4 +84,46 @@ export function openRazorpayCheckout(options) {
 
     rzp.open();
   });
+}
+
+/**
+ * High-level helper to process the full payment flow from start to finish.
+ * It calls the backend to initiate, opens the Razorpay UI, and verifies on success.
+ */
+export async function processPaymentFlow({
+  paymentFor,
+  itemId,
+  amount,
+  name = 'TekSchool',
+  description,
+  prefill,
+}) {
+  await loadRazorpay();
+
+  // 1. Create order on the server
+  const initRes = await initiatePayment({ paymentFor, itemId, amount });
+  const { payment, providerOrder, key } = initRes.data;
+  const paymentId = payment._id;
+
+  // 2. Open Razorpay checkout modal
+  const response = await openRazorpayCheckout({
+    key: key || import.meta.env.VITE_RAZORPAY_KEY_ID,
+    amount: providerOrder.amount,
+    currency: providerOrder.currency,
+    name,
+    description,
+    order_id: providerOrder.id,
+    prefill,
+    theme: { color: '#1E1B4B' }
+  });
+
+  // 3. Verify signature on the server
+  await verifyPayment({
+    razorpay_order_id: response.razorpay_order_id,
+    razorpay_payment_id: response.razorpay_payment_id,
+    razorpay_signature: response.razorpay_signature,
+    paymentId
+  });
+
+  return initRes.data;
 }
