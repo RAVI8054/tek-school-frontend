@@ -1,44 +1,50 @@
 import { useState, useEffect, useCallback } from 'react';
+import { CalendarPlus } from 'lucide-react';
 import { PipelineBoard } from '../../../components/admin/PipelineBoard.jsx';
 import { EnquiryDetail } from './EnquiryDetail.jsx';
+import { AddSlotModal } from './AddSlotModal.jsx';
 import { getEnquiries, updateEnquiryStatus } from '../../../lib/api.js';
 
-// Statuses from the backend model
-const STAGES = ['New', 'In Progress', 'Scheduled', 'Rejected', 'Completed'];
+// ── New pipeline stages ──────────────────────────────────────────────────────
+const STAGES = ['New', 'Qualified', 'Demo', 'Follow-ups', 'Won', 'Lost'];
 
 const TINT = {
-  'New':         '#F4A261',
-  'In Progress': '#5BA4E8',
-  'Scheduled':   '#8B5CF6',
-  'Rejected':    '#EF4444',
-  'Completed':   '#10B981',
+  'New':       '#F4A261',
+  'Qualified': '#5BA4E8',
+  'Demo':      '#8B5CF6',
+  'Follow-ups':'#F59E0B',
+  'Won':       '#10B981',
+  'Lost':      '#EF4444',
 };
 
+// backend key → display label
 const STATUS_MAP = {
-  'new':         'New',
-  'in_progress': 'In Progress',
-  'scheduled':   'Scheduled',
-  'rejected':    'Rejected',
-  'completed':   'Completed',
+  'new':        'New',
+  'qualified':  'Qualified',
+  'demo':       'Demo',
+  'follow_ups': 'Follow-ups',
+  'won':        'Won',
+  'lost':       'Lost',
 };
 
-// reverse: display label → backend key
+// display label → backend key
 const REVERSE_STATUS = Object.fromEntries(
   Object.entries(STATUS_MAP).map(([k, v]) => [v, k])
 );
 
 const TABS = [
-  { key: 'all',             label: 'All' },
-  { key: 'book_demo',       label: 'Book Demo' },
-  { key: 'talk_counselor',  label: 'Talk to Counselor' },
-  { key: 'workshop',        label: 'Workshop' },
+  { key: 'all',            label: 'All' },
+  { key: 'book_demo',      label: 'Book Demo' },
+  { key: 'talk_counselor', label: 'Talk to Counselor' },
+  { key: 'workshop',       label: 'Workshop' },
 ];
 
 export function AdmissionEnquiryPage() {
-  const [items, setItems]           = useState([]);
-  const [activeTab, setActiveTab]   = useState('all');
-  const [selected, setSelected]     = useState(null);
-  const [loading, setLoading]       = useState(true);
+  const [items, setItems]         = useState([]);
+  const [activeTab, setActiveTab] = useState('all');
+  const [selected, setSelected]   = useState(null);
+  const [loading, setLoading]     = useState(true);
+  const [showSlotModal, setShowSlotModal] = useState(false);
 
   /* ---------- data fetch ---------- */
   const fetchLeads = useCallback(() => {
@@ -47,30 +53,30 @@ export function AdmissionEnquiryPage() {
     getEnquiries(params)
       .then((res) => {
         const mapped = (res.data?.enquiries ?? []).map((eq) => ({
-          id:              eq._id,
-          name:            eq.name,
-          phone:           eq.phone,
-          email:           eq.email,
-          education:       eq.education,
-          program:         eq.program,
-          inquiry_type:    eq.inquiry_type,
-          workshop_name:   eq.workshop_name,
+          id:               eq._id,
+          name:             eq.name,
+          phone:            eq.phone,
+          email:            eq.email,
+          education:        eq.education,
+          program:          eq.program,
+          inquiry_type:     eq.inquiry_type,
+          workshop_name:    eq.workshop_name,
           // slot requested by student
-          slotType:        eq.slot?.type,
-          slotDate:        eq.slot?.dateString,
-          slotTime:        eq.slot?.timePreference,
+          slotType:         eq.slot?.type,
+          slotDate:         eq.slot?.dateString,
+          slotTime:         eq.slot?.timePreference,
           // slot confirmed by admin
-          confirmedDate:   eq.confirmed_slot?.date
-                             ? new Date(eq.confirmed_slot.date).toLocaleDateString('en-IN')
-                             : null,
-          confirmedTime:   eq.confirmed_slot?.time,
+          confirmedDate:    eq.confirmed_slot?.date
+                              ? new Date(eq.confirmed_slot.date).toLocaleDateString('en-IN')
+                              : null,
+          confirmedTime:    eq.confirmed_slot?.time,
           rejection_reason: eq.rejection_reason,
-          stage:           STATUS_MAP[eq.status] ?? 'New',
-          backendStatus:   eq.status,
-          counselor:       eq.assigned_to?.name ?? 'Unassigned',
-          createdAt:       new Date(eq.createdAt).toLocaleDateString('en-IN'),
-          notes:           eq.admin_notes?.[0]?.note ?? '',
-          raw:             eq,
+          stage:            STATUS_MAP[eq.status] ?? 'New',
+          backendStatus:    eq.status,
+          counselor:        eq.assigned_to?.name ?? 'Unassigned',
+          createdAt:        new Date(eq.createdAt).toLocaleDateString('en-IN'),
+          notes:            eq.admin_notes?.[0]?.note ?? '',
+          raw:              eq,
         }));
         setItems(mapped);
       })
@@ -113,36 +119,49 @@ export function AdmissionEnquiryPage() {
   /* ---------- render ---------- */
   return (
     <div className="flex flex-col h-full gap-3 overflow-hidden">
-      {/* Tab bar */}
+      {/* Top bar: hint text + Add Slot button + tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 shrink-0">
         <p className="text-xs text-slate-500 hidden sm:block">
           Drag cards across columns to update status instantly.
         </p>
-        <div className="flex flex-wrap gap-1 bg-slate-200/50 p-1 rounded-lg shadow-inner w-full sm:w-auto">
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => { setActiveTab(tab.key); setLoading(true); }}
-              className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-md transition-all duration-200 ${
-                activeTab === tab.key
-                  ? 'bg-white shadow-sm text-blue-600'
-                  : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {/* ── Add Slot button ── */}
+          <button
+            onClick={() => setShowSlotModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all duration-150 shrink-0"
+          >
+            <CalendarPlus className="w-3.5 h-3.5" />
+            Add Slot
+          </button>
+
+          {/* Tab bar */}
+          <div className="flex flex-wrap gap-1 bg-slate-200/50 p-1 rounded-lg shadow-inner flex-1 sm:flex-none">
+            {TABS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => { setActiveTab(tab.key); setLoading(true); }}
+                className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold rounded-md transition-all duration-200 ${
+                  activeTab === tab.key
+                    ? 'bg-white shadow-sm text-blue-600'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Board */}
       {loading ? (
         <div className="flex-1 flex gap-3 h-full px-2 pb-2">
-          {[...Array(4)].map((_, i) => (
+          {[...Array(6)].map((_, i) => (
             <div key={i} className="flex-1 bg-slate-50/50 rounded-xl border border-slate-200 flex flex-col p-2 gap-2">
-              <div className="h-8 animate-pulse bg-slate-200 rounded-lg shrink-0 mb-1 w-2/3"></div>
-              {[...Array(3)].map((_, j) => (
-                <div key={j} className="h-28 animate-pulse bg-white border border-slate-200 rounded-lg shrink-0 shadow-sm"></div>
+              <div className="h-8 animate-pulse bg-slate-200 rounded-lg shrink-0 mb-1 w-2/3" />
+              {[...Array(2)].map((_, j) => (
+                <div key={j} className="h-28 animate-pulse bg-white border border-slate-200 rounded-lg shrink-0 shadow-sm" />
               ))}
             </div>
           ))}
@@ -170,12 +189,12 @@ export function AdmissionEnquiryPage() {
                   <p className="text-[11px] text-slate-500 truncate">{item.email}</p>
                   <p className="text-[11px] text-slate-400">{item.phone}</p>
 
-                  {/* Program (book demo / talk to counselor) */}
+                  {/* Program */}
                   {isSlotType && item.program && (
                     <p className="text-[11px] text-blue-700 font-medium truncate">📚 {item.program}</p>
                   )}
 
-                  {/* Requested slot (book demo / talk to counselor) */}
+                  {/* Requested slot */}
                   {isSlotType && item.slotDate && (
                     <div className="flex items-center gap-1 bg-orange-50 border border-orange-100 rounded px-2 py-1">
                       <span className="text-[10px] font-bold text-orange-700">🕐 Slot:</span>
@@ -217,6 +236,14 @@ export function AdmissionEnquiryPage() {
           item={selected}
           onBack={() => setSelected(null)}
           onUpdate={handleUpdate}
+        />
+      )}
+
+      {/* Add Slot modal */}
+      {showSlotModal && (
+        <AddSlotModal
+          onClose={() => setShowSlotModal(false)}
+          onSaved={fetchLeads}
         />
       )}
     </div>

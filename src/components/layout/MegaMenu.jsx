@@ -55,9 +55,12 @@ export function MegaMenu({ label, to, active, rows, feature, variant = "icons" }
       onMouseEnter={openNow}
       onMouseLeave={closeSoon}
     >
-      <Link
-        to={to}
-        onClick={() => setOpen((o) => !o)}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((o) => !o);
+        }}
         aria-expanded={open}
         aria-haspopup="menu"
         className={`flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
@@ -69,7 +72,7 @@ export function MegaMenu({ label, to, active, rows, feature, variant = "icons" }
           className="h-3.5 w-3.5 transition-transform duration-200"
           style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
         />
-      </Link>
+      </button>
 
       {open && (
         <>

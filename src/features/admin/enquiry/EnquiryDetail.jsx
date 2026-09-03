@@ -7,11 +7,12 @@ import {
 /* ─── helpers ─────────────────────────────────────────────────────────── */
 
 const STATUS_COLORS = {
-  new:         'bg-yellow-100 text-yellow-800 border-yellow-200',
-  in_progress: 'bg-blue-100   text-blue-800   border-blue-200',
-  scheduled:   'bg-purple-100 text-purple-800 border-purple-200',
-  completed:   'bg-green-100  text-green-800  border-green-200',
-  rejected:    'bg-red-100    text-red-800    border-red-200',
+  new:        'bg-yellow-100 text-yellow-800 border-yellow-200',
+  qualified:  'bg-blue-100   text-blue-800   border-blue-200',
+  demo:       'bg-purple-100 text-purple-800 border-purple-200',
+  follow_ups: 'bg-amber-100  text-amber-800  border-amber-200',
+  won:        'bg-green-100  text-green-800  border-green-200',
+  lost:       'bg-red-100    text-red-800    border-red-200',
 };
 const statusColor = (s) => STATUS_COLORS[s] ?? 'bg-gray-100 text-gray-800 border-gray-200';
 
@@ -147,10 +148,10 @@ export function EnquiryDetail({ item, onBack, onUpdate }) {
 
   const handleSave = () => {
     const payload = { status };
-    if (note.trim())            payload.note             = note.trim();
-    if (status === 'rejected')  payload.rejection_reason = rejectionReason;
-    // Only send confirmed_slot when the admin has actually filled BOTH fields
-    if (status === 'scheduled' && isSlotType && slotDate && slotTime) {
+    if (note.trim())           payload.note             = note.trim();
+    if (status === 'lost')     payload.rejection_reason = rejectionReason;
+    // Only send confirmed_slot when admin has filled BOTH fields for 'demo' stage
+    if (status === 'demo' && isSlotType && slotDate && slotTime) {
       payload.confirmed_slot = { date: slotDate, time: slotTime };
     }
     onUpdate(item.id, payload);
@@ -277,15 +278,16 @@ export function EnquiryDetail({ item, onBack, onUpdate }) {
                       className="w-full bg-gray-50 border border-gray-300 rounded-md p-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="new">New</option>
-                      <option value="in_progress">In Progress</option>
-                      <option value="scheduled">Scheduled</option>
-                      <option value="rejected">Rejected</option>
-                      <option value="completed">Completed</option>
+                      <option value="qualified">Qualified</option>
+                      <option value="demo">Demo</option>
+                      <option value="follow_ups">Follow-ups</option>
+                      <option value="won">Won</option>
+                      <option value="lost">Lost</option>
                     </select>
                   </div>
 
-                  {/* Confirm slot — only for slot-type enquiries when status = scheduled */}
-                  {status === 'scheduled' && isSlotType && (
+                  {/* Confirm slot — only for slot-type enquiries when status = demo */}
+                  {status === 'demo' && isSlotType && (
                     <div className="space-y-3 animate-pulse-once">
                       <p className="text-xs font-bold text-gray-600">Confirm Appointment Slot</p>
                       {/* Show what student requested */}
@@ -320,26 +322,26 @@ export function EnquiryDetail({ item, onBack, onUpdate }) {
                     </div>
                   )}
 
-                  {/* Rejection reason */}
-                  {status === 'rejected' && (
+                  {/* Lost reason */}
+                  {status === 'lost' && (
                     <div>
-                      <label className="block text-xs font-bold text-gray-600 mb-1">Rejection Reason</label>
+                      <label className="block text-xs font-bold text-gray-600 mb-1">Reason Lost</label>
                       <input
                         type="text"
                         value={rejectionReason}
                         onChange={(e) => setRejectionReason(e.target.value)}
-                        placeholder="e.g., Fake number, Not interested…"
+                        placeholder="e.g. Not interested, Chose competitor…"
                         className="w-full bg-red-50 border border-red-200 rounded-md p-2.5 text-sm focus:ring-2 focus:ring-red-500 outline-none"
                       />
                     </div>
                   )}
 
-                  {/* Completed confirmation */}
-                  {status === 'completed' && (
+                  {/* Won confirmation */}
+                  {status === 'won' && (
                     <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-lg p-3">
                       <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
                       <p className="text-xs text-green-800 font-medium">
-                        Marking as completed. Add a note below if needed.
+                        Marking as Won 🎉 Add a note below if needed.
                       </p>
                     </div>
                   )}

@@ -4,22 +4,24 @@ import { EnquiryDetail } from './EnquiryDetail.jsx';
 import { getEnquiries, updateEnquiryStatus } from '../../../lib/api.js';
 
 // Statuses from the backend model
-const STAGES = ['New', 'In Progress', 'Scheduled', 'Rejected', 'Completed'];
+const STAGES = ['New', 'Qualified', 'Demo', 'Follow-ups', 'Won', 'Lost'];
 
 const TINT = {
-  'New':         '#F4A261',
-  'In Progress': '#5BA4E8',
-  'Scheduled':   '#8B5CF6',
-  'Rejected':    '#EF4444',
-  'Completed':   '#10B981',
+  'New':       '#F4A261',
+  'Qualified': '#5BA4E8',
+  'Demo':      '#8B5CF6',
+  'Follow-ups':'#F59E0B',
+  'Won':       '#10B981',
+  'Lost':      '#EF4444',
 };
 
 const STATUS_MAP = {
-  'new':         'New',
-  'in_progress': 'In Progress',
-  'scheduled':   'Scheduled',
-  'rejected':    'Rejected',
-  'completed':   'Completed',
+  'new':        'New',
+  'qualified':  'Qualified',
+  'demo':       'Demo',
+  'follow_ups': 'Follow-ups',
+  'won':        'Won',
+  'lost':       'Lost',
 };
 
 // reverse: display label → backend key
@@ -133,10 +135,10 @@ export function TekCampusEnquiryPage() {
       {/* Board */}
       {loading ? (
         <div className="flex-1 flex gap-3 h-full px-2 pb-2">
-          {[...Array(4)].map((_, i) => (
+          {[...Array(6)].map((_, i) => (
             <div key={i} className="flex-1 bg-slate-50/50 rounded-xl border border-slate-200 flex flex-col p-2 gap-2">
               <div className="h-8 animate-pulse bg-slate-200 rounded-lg shrink-0 mb-1 w-2/3"></div>
-              {[...Array(3)].map((_, j) => (
+              {[...Array(2)].map((_, j) => (
                 <div key={j} className="h-28 animate-pulse bg-white border border-slate-200 rounded-lg shrink-0 shadow-sm"></div>
               ))}
             </div>
