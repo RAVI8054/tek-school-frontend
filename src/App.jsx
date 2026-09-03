@@ -22,6 +22,7 @@ import { AdminDashboard } from './features/admin/AdminDashboard.jsx';
 import { StudentsPage } from './features/admin/students/StudentsPage.jsx';
 import { CohortsPage } from './features/admin/CohortsPage.jsx';
 import { InstructorsPage } from './features/admin/instructors/InstructorsPage.jsx';
+import { SalesTeamPage } from './features/admin/salesteam/SalesTeamPage.jsx';
 import { FinancePage } from './features/admin/FinancePage.jsx';
 import { StudioPage } from './features/admin/StudioPage.jsx';
 import { AdminWorkshopsPage } from './features/admin/workshops/AdminWorkshopsPage.jsx';
@@ -112,6 +113,7 @@ function App() {
         {/* Fill other admin routes with placeholders for now */}
         <Route path="cohorts" element={<CohortsPage />} />
         <Route path="instructors" element={<InstructorsPage />} />
+        <Route path="salesteam" element={<SalesTeamPage />} />
         <Route path="assignments" element={<AssignmentsPage />} />
         <Route path="content" element={<ContentPage />} />
         <Route path="enquiries" element={<EnquiriesPage />}>

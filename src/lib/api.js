@@ -176,6 +176,42 @@ export async function deleteInstructorAdmin(id) {
 }
 
 /**
+ * Register a new sales team member (Admin only)
+ */
+export async function registerSalesTeam(data) {
+  return fetchApi(`/auth/salesteam`, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+/**
+ * Fetch all sales team members (Admin only)
+ */
+export async function getSalesTeam() {
+  return fetchApi(`/auth/salesteam`);
+}
+
+/**
+ * Update a sales team member (Admin only)
+ */
+export async function updateSalesTeamAdmin(id, data) {
+  return fetchApi(`/auth/salesteam/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  });
+}
+
+/**
+ * Delete a sales team member (Admin only)
+ */
+export async function deleteSalesTeamAdmin(id) {
+  return fetchApi(`/auth/salesteam/${id}`, {
+    method: 'DELETE'
+  });
+}
+
+/**
  * Fetch enquiries with filtering.
  * @param {Object} filters - { category, inquiry_type, status, search, page, limit }
  */
@@ -516,5 +552,44 @@ export async function uploadWorkshopImage(file) {
 
   return response.json();
 }
+
+// ============================================================================
+// PAYMENT APIs  (Razorpay)
+// ============================================================================
+
+/**
+ * Step 1 — Create a pending payment record + Razorpay order on the server.
+ *
+ * @param {{
+ *   paymentFor: 'Course' | 'Workshop' | 'Other',
+ *   itemId: string,
+ *   amount: number,   // INR (backend converts to paise internally)
+ * }} data
+ */
+export async function initiatePayment({ paymentFor, itemId, amount }) {
+  return fetchApi('/payments/initiatepayment', {
+    method: 'POST',
+    body: JSON.stringify({ paymentFor, itemId, amount, paymentMethod: 'Razorpay' }),
+  });
+}
+
+/**
+ * Step 2 — Verify Razorpay signature server-side after checkout.
+ * Always call this before showing a success screen.
+ *
+ * @param {{
+ *   razorpay_order_id: string,
+ *   razorpay_payment_id: string,
+ *   razorpay_signature: string,
+ *   paymentId: string,   // Our DB Payment._id from initiatePayment response
+ * }} data
+ */
+export async function verifyPayment({ razorpay_order_id, razorpay_payment_id, razorpay_signature, paymentId }) {
+  return fetchApi('/payments/verifypayment', {
+    method: 'POST',
+    body: JSON.stringify({ razorpay_order_id, razorpay_payment_id, razorpay_signature, paymentId }),
+  });
+}
+
 
 

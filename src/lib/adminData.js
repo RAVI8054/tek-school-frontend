@@ -134,8 +134,9 @@ export const AUDIT = [
   { id: 3, when: '9:32 AM', who: 'Admin', action: 'Published 3 assignments for AI-01' },
 ];
 export const ROLE_ACCESS = {
-  admin: ['overview','students','cohorts','instructors','assignments','content','workshops','enquiries','enquiries-admission','enquiries-tekcampus','placements','outreach','pages','canvas','marketing','community','finance','settings'],
+  admin: ['overview','students','cohorts','instructors','salesteam','assignments','content','workshops','enquiries','enquiries-admission','enquiries-tekcampus','placements','outreach','pages','canvas','marketing','community','finance','settings'],
   admissions: ['enquiries','enquiries-admission','enquiries-tekcampus','placements'],
+  salesteam: ['overview','enquiries','enquiries-admission','enquiries-tekcampus','community'],
   instructor: ['students','assignments','content'],
   finance: ['finance'],
 };

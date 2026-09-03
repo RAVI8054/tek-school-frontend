@@ -24,6 +24,7 @@ const NAV_GROUPS = [
     { key: 'students', to: '/admin/students', label: 'Students', icon: Users },
     { key: 'cohorts', to: '/admin/cohorts', label: 'Cohorts & Classes', icon: GraduationCap },
     { key: 'instructors', to: '/admin/instructors', label: 'Instructors', icon: UserSquare },
+    { key: 'salesteam', to: '/admin/salesteam', label: 'Sales Team', icon: Users },
   ] },
   { label: 'Learning', items: [
     { key: 'assignments', to: '/admin/assignments', label: 'Assignments', icon: ClipboardCheck },
