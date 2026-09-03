@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Calendar, Clock, MapPin, Users, Check, ArrowLeft, Sparkles } from "lucide-react";
-import { BookDemoForm } from "./BookDemoForm.jsx";
+import { BookDemoForm } from "../BookDemoForm.jsx";
 
 const trackPill = (t) =>
   t === "AI"
