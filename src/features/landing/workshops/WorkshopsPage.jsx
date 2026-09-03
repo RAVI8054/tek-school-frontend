@@ -14,45 +14,47 @@ export function WorkshopsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchWorkshops();
+    let isMounted = true;
+    getWorkshops()
+      .then((res) => {
+        if (!isMounted) return;
+        const mapped = (res.data?.workshops || []).map(w => ({
+          id: w._id,
+          title: w.title,
+          blurb: w.blurb,
+          track: w.track,
+          format: w.format,
+          date: new Date(w.startTime).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }),
+          time: new Date(w.startTime).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+          duration: w.durationText || 'N/A',
+          seats: w.totalSeats,
+          seatsLeft: w.availableSeats,
+          price: w.isFree ? 'Free' : `₹${w.price?.amount || 0}`,
+          host: w.host?.userId?.name || 'Instructor',
+          hostRole: w.host?.role || 'Faculty',
+          image: w.imageUrl,
+          featured: w.featured,
+          takeaways: w.takeaways,
+          about: w.about,
+          agenda: w.agenda,
+          forWho: w.forWho,
+          prereqs: w.prerequisites,
+          hostPhoto: w.host?.photoUrl || '',
+          hostBio: w.host?.bio || '',
+          hostCreds: w.host?.credentials || [],
+        }));
+        setWorkshops(mapped);
+      })
+      .catch((err) => {
+        console.error("Failed to load workshops", err);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
-
-  const fetchWorkshops = async () => {
-    try {
-      const res = await getWorkshops();
-      // Map backend model to the format expected by WorkshopCard/Drawer
-      const mapped = (res.data?.workshops || []).map(w => ({
-        id: w._id,
-        title: w.title,
-        blurb: w.blurb,
-        track: w.track,
-        format: w.format,
-        date: new Date(w.startTime).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }),
-        time: new Date(w.startTime).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
-        duration: w.durationText || 'N/A',
-        seats: w.totalSeats,
-        seatsLeft: w.availableSeats,
-        price: w.isFree ? 'Free' : `₹${w.price?.amount || 0}`,
-        host: w.host?.userId?.name || 'Instructor',
-        hostRole: w.host?.role || 'Faculty',
-        image: w.imageUrl,
-        featured: w.featured,
-        takeaways: w.takeaways,
-        about: w.about,
-        agenda: w.agenda,
-        forWho: w.forWho,
-        prereqs: w.prerequisites,
-        hostPhoto: w.host?.photoUrl || '', // Fallback or imported image
-        hostBio: w.host?.bio || '',
-        hostCreds: w.host?.credentials || [],
-      }));
-      setWorkshops(mapped);
-    } catch (err) {
-      console.error("Failed to load workshops", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const closeModal = useCallback(() => {
     setActive(null);

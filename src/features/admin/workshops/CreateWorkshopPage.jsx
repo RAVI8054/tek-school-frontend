@@ -3,32 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { AdminShell } from '../../../components/admin/AdminShell.jsx';
 import { createAdminWorkshop, getInstructors, uploadWorkshopImage } from '../../../lib/api.js';
 import { pushToast } from '../../../lib/actionBus.js';
-import { Plus, Trash2, ArrowLeft, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Trash2, ArrowLeft, Upload, Loader2 } from 'lucide-react';
 
 export function CreateWorkshopPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [instructors, setInstructors] = useState([]);
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setUploadingImage(true);
-      const res = await uploadWorkshopImage(file);
-      if (res.data?.imageUrl) {
-        setFormData(prev => ({ ...prev, imageUrl: res.data.imageUrl }));
-        pushToast("Image uploaded successfully!", "success");
-      }
-    } catch (err) {
-      console.error(err);
-      pushToast(err.message || "Failed to upload image", "error");
-    } finally {
-      setUploadingImage(false);
-    }
-  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -54,16 +35,36 @@ export function CreateWorkshopPage() {
   const [forWho, setForWho] = useState(['']);
 
   useEffect(() => {
-    fetchInstructors();
+    let isMounted = true;
+    getInstructors()
+      .then((res) => {
+        if (isMounted) setInstructors(res.data?.instructors || []);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (isMounted) pushToast("Failed to fetch instructors", "error");
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const fetchInstructors = async () => {
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     try {
-      const res = await getInstructors();
-      setInstructors(res.data?.instructors || []);
+      setUploadingImage(true);
+      const res = await uploadWorkshopImage(file);
+      if (res.data?.imageUrl) {
+        setFormData(prev => ({ ...prev, imageUrl: res.data.imageUrl }));
+        pushToast("Image uploaded successfully!", "success");
+      }
     } catch (err) {
       console.error(err);
-      pushToast("Failed to fetch instructors", "error");
+      pushToast(err.message || "Failed to upload image", "error");
+    } finally {
+      setUploadingImage(false);
     }
   };
 

@@ -11,21 +11,22 @@ export function AdminWorkshopsPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchWorkshops();
+    let isMounted = true;
+    getWorkshops()
+      .then((res) => {
+        if (isMounted) setWorkshops(res.data?.workshops || []);
+      })
+      .catch((err) => {
+        console.error(err);
+        if (isMounted) pushToast("Failed to fetch workshops", "error");
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
-
-  const fetchWorkshops = async () => {
-    try {
-      setLoading(true);
-      const res = await getWorkshops();
-      setWorkshops(res.data?.workshops || []);
-    } catch (err) {
-      console.error(err);
-      pushToast("Failed to fetch workshops", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <AdminShell title="Workshops">
