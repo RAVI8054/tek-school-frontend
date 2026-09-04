@@ -7,6 +7,8 @@ import { WorkshopCard } from "./WorkshopCard.jsx";
 import { getWorkshops } from "../../../lib/api.js";
 import { processPaymentFlow } from "../../../lib/razorpay.js";
 import { pushToast } from "../../../lib/actionBus.js";
+import { useSession } from "../../../lib/auth.js";
+import { GuestPaymentModal } from "../GuestPaymentModal.jsx";
 
 export function WorkshopsPage() {
   const [active, setActive] = useState(null);
@@ -14,6 +16,8 @@ export function WorkshopsPage() {
   const [enquiry, setEnquiry] = useState(null);
   const [workshops, setWorkshops] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [guestPaymentWorkshop, setGuestPaymentWorkshop] = useState(null);
+  const session = useSession();
 
   useEffect(() => {
     let isMounted = true;
@@ -76,6 +80,11 @@ export function WorkshopsPage() {
       return;
     }
     
+    if (!session) {
+      setGuestPaymentWorkshop(workshop);
+      return;
+    }
+
     try {
       await processPaymentFlow({
         paymentFor: 'Workshop',
@@ -89,7 +98,7 @@ export function WorkshopsPage() {
       console.error(err);
       pushToast(err.message || 'Payment failed', 'error');
     }
-  }, []);
+  }, [session]);
 
   const totalSeatsLeft = workshops.reduce((a, w) => a + w.seatsLeft, 0);
   const freeCount = workshops.filter((w) => w.price === "Free" || w.price === "₹0").length;
@@ -158,6 +167,13 @@ export function WorkshopsPage() {
         interest={enquiry ? `Workshop Enquiry — ${enquiry.title}` : "Workshop"}
         institutionType="Workshop enquiry"
         cta="Send Enquiry"
+      />
+
+      <GuestPaymentModal
+        open={!!guestPaymentWorkshop}
+        onClose={() => setGuestPaymentWorkshop(null)}
+        workshop={guestPaymentWorkshop}
+        onSuccess={() => setGuestPaymentWorkshop(null)}
       />
     </Shell>
   );

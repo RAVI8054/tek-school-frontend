@@ -136,6 +136,10 @@ export async function getStudents() {
   return fetchApi('/auth/student', { method: 'GET' });
 }
 
+export async function getStudentDetailsAdmin(id) {
+  return fetchApi(`/auth/student/${id}`, { method: 'GET' });
+}
+
 export async function updateStudentAdmin(id, data) {
   return fetchApi(`/auth/student/${id}`, {
     method: 'PATCH',
@@ -526,6 +530,25 @@ export async function createAdminWorkshop(data) {
   });
 }
 
+export async function getWorkshopBookingsAdmin() {
+  return fetchApi('/workshops/bookings');
+}
+
+export async function updateWorkshopBookingAdmin(id, data) {
+  return fetchApi(`/workshops/bookings/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteWorkshopBookingAdmin(id) {
+  return fetchApi(`/workshops/bookings/${id}`, { method: 'DELETE' });
+}
+
+export async function getMyWorkshopBookings() {
+  return fetchApi(`/workshops/my-bookings`);
+}
+
 export async function bookWorkshop(id, paymentData = {}) {
   return fetchApi(`/workshops/${id}/book`, {
     method: 'POST',
@@ -570,6 +593,25 @@ export async function initiatePayment({ paymentFor, itemId, amount }) {
   return fetchApi('/payments/initiatepayment', {
     method: 'POST',
     body: JSON.stringify({ paymentFor, itemId, amount, paymentMethod: 'Razorpay' }),
+  });
+}
+
+/**
+ * Step 1 (Guest) — Create a pending payment record + Razorpay order on the server.
+ *
+ * @param {{
+ *   name: string,
+ *   email: string,
+ *   phone?: string,
+ *   paymentFor: 'Course' | 'Workshop' | 'Other',
+ *   itemId: string,
+ *   amount: number,   // INR (backend converts to paise internally)
+ * }} data
+ */
+export async function initiateGuestPayment({ name, email, phone, paymentFor, itemId, amount }) {
+  return fetchApi('/payments/guest-checkout', {
+    method: 'POST',
+    body: JSON.stringify({ name, email, phone, paymentFor, itemId, amount, paymentMethod: 'Razorpay' }),
   });
 }
 

@@ -4,7 +4,7 @@
  * Guarantees the Razorpay <script> is injected only ONCE no matter how many
  * components call loadRazorpay() concurrently.
  */
-import { initiatePayment, verifyPayment } from './api.js';
+import { initiatePayment, initiateGuestPayment, verifyPayment } from './api.js';
 
 const RAZORPAY_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 
@@ -97,11 +97,24 @@ export async function processPaymentFlow({
   name = 'TekSchool',
   description,
   prefill,
+  guest = null, // { name, email, phone }
 }) {
   await loadRazorpay();
 
   // 1. Create order on the server
-  const initRes = await initiatePayment({ paymentFor, itemId, amount });
+  let initRes;
+  if (guest) {
+    initRes = await initiateGuestPayment({
+      name: guest.name,
+      email: guest.email,
+      phone: guest.phone,
+      paymentFor,
+      itemId,
+      amount,
+    });
+  } else {
+    initRes = await initiatePayment({ paymentFor, itemId, amount });
+  }
   const { payment, providerOrder, key } = initRes.data;
   const paymentId = payment._id;
 

@@ -20,6 +20,7 @@ import { CampusAILab } from './features/landing/CampusAILab.jsx';
 // Dashboards
 import { AdminDashboard } from './features/admin/AdminDashboard.jsx';
 import { StudentsPage } from './features/admin/students/StudentsPage.jsx';
+import { StudentDetailsPage } from './features/admin/students/StudentDetailsPage.jsx';
 import { CohortsPage } from './features/admin/CohortsPage.jsx';
 import { InstructorsPage } from './features/admin/instructors/InstructorsPage.jsx';
 import { SalesTeamPage } from './features/admin/salesteam/SalesTeamPage.jsx';
@@ -110,6 +111,7 @@ function App() {
       <Route path="/admin" element={<ProtectedRoute />}>
         <Route index element={<AdminDashboard />} />
         <Route path="students" element={<StudentsPage />} />
+        <Route path="students/:id" element={<StudentDetailsPage />} />
         {/* Fill other admin routes with placeholders for now */}
         <Route path="cohorts" element={<CohortsPage />} />
         <Route path="instructors" element={<InstructorsPage />} />
