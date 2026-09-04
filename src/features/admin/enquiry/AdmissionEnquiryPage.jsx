@@ -98,6 +98,7 @@ export function AdmissionEnquiryPage() {
 
     try {
       await updateEnquiryStatus(id, { status: backendStatus });
+      fetchLeads(); // Fetch to update activity timeline and other backend fields
     } catch (err) {
       console.error('Failed to move card:', err);
       fetchLeads(); // revert on failure
