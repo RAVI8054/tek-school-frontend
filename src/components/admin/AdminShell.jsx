@@ -190,7 +190,7 @@ function SidebarContent({ collapsed, setCollapsed, allowed, isActive, isMobile, 
               </div>
             </div>
             <button
-              onClick={async () => { await logout(); navigate('/admin/login'); }}
+              onClick={async () => { await logout(); navigate('/tek_team/login'); }}
               className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50"
             >
               <LogOut className="h-3 w-3" /> Exit admin
@@ -199,7 +199,7 @@ function SidebarContent({ collapsed, setCollapsed, allowed, isActive, isMobile, 
         )}
         {collapsed && !isMobile && (
           <button
-            onClick={async () => { await logout(); navigate('/admin/login'); }}
+            onClick={async () => { await logout(); navigate('/tek_team/login'); }}
             className="grid h-9 w-full place-items-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
             title="Exit admin"
           >

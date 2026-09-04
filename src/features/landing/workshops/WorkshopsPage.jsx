@@ -2,9 +2,8 @@ import { useState, useCallback, useEffect } from "react";
 import { Shell } from "../../../components/layout/Shell.jsx";
 import { Squiggle, Asterisk } from "../../../components/ui/Doodles.jsx";
 import { WorkshopDrawer } from "./WorkshopDrawer.jsx";
-import { LeadModal } from "../LeadModal.jsx";
 import { WorkshopCard } from "./WorkshopCard.jsx";
-import { getWorkshops } from "../../../lib/api.js";
+import { getWorkshops, bookWorkshop } from "../../../lib/api.js";
 import { processPaymentFlow } from "../../../lib/razorpay.js";
 import { pushToast } from "../../../lib/actionBus.js";
 import { useSession } from "../../../lib/auth.js";
@@ -13,7 +12,6 @@ import { GuestPaymentModal } from "../GuestPaymentModal.jsx";
 export function WorkshopsPage() {
   const [active, setActive] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [enquiry, setEnquiry] = useState(null);
   const [workshops, setWorkshops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [guestPaymentWorkshop, setGuestPaymentWorkshop] = useState(null);
@@ -76,7 +74,17 @@ export function WorkshopsPage() {
 
   const handleReserve = useCallback(async (workshop) => {
     if (workshop.isFree || workshop.rawPrice === 0) {
-      setEnquiry(workshop);
+      if (!session) {
+        setGuestPaymentWorkshop(workshop);
+        return;
+      }
+      try {
+        await bookWorkshop(workshop.id);
+        pushToast("Seat reserved successfully!");
+      } catch (err) {
+        console.error(err);
+        pushToast(err.message || 'Failed to reserve seat', 'error');
+      }
       return;
     }
     
@@ -148,7 +156,6 @@ export function WorkshopsPage() {
                 key={w.id}
                 workshop={w}
                 onDetails={handleDetails}
-                onEnquiry={setEnquiry}
                 onReserve={handleReserve}
               />
             ))
@@ -157,17 +164,6 @@ export function WorkshopsPage() {
       </section>
 
       <WorkshopDrawer workshop={active} showForm={showForm} onShowForm={setShowForm} onClose={closeModal} />
-
-      <LeadModal
-        open={!!enquiry}
-        onClose={() => setEnquiry(null)}
-        badge={enquiry ? `${enquiry.seatsLeft} seats left` : undefined}
-        title="Enquiry"
-        subtitle={enquiry ? `${enquiry.title} · ${enquiry.date}, ${enquiry.time}` : undefined}
-        interest={enquiry ? `Workshop Enquiry — ${enquiry.title}` : "Workshop"}
-        institutionType="Workshop enquiry"
-        cta="Send Enquiry"
-      />
 
       <GuestPaymentModal
         open={!!guestPaymentWorkshop}

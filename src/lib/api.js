@@ -51,6 +51,9 @@ export async function loginAdmin(credentials) {
   return fetchApi(`/auth/login`, {
     method: 'POST',
     body: JSON.stringify(credentials)
+  }).then(res => {
+    localStorage.setItem('auth_sync', Date.now().toString());
+    return res;
   });
 }
 
@@ -60,6 +63,9 @@ export async function loginAdmin(credentials) {
 export async function logoutAdmin() {
   return fetchApi(`/auth/logout`, {
     method: 'POST',
+  }).then(res => {
+    localStorage.setItem('auth_sync', Date.now().toString());
+    return res;
   });
 }
 
@@ -87,6 +93,9 @@ export async function loginStudent(credentials) {
   return fetchApi(`/auth/login`, {
     method: 'POST',
     body: JSON.stringify({ ...credentials, clientType: 'studentPanel' })
+  }).then(res => {
+    localStorage.setItem('auth_sync', Date.now().toString());
+    return res;
   });
 }
 
@@ -96,6 +105,9 @@ export async function loginStudent(credentials) {
 export async function logoutStudent() {
   return fetchApi(`/auth/logout`, {
     method: 'POST',
+  }).then(res => {
+    localStorage.setItem('auth_sync', Date.now().toString());
+    return res;
   });
 }
 

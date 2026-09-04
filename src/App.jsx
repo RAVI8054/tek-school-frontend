@@ -81,8 +81,20 @@ const Placeholder = ({ title }) => (
 );
 
 import { Toaster } from 'react-hot-toast';
+import { useEffect } from 'react';
 
 function App() {
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'auth_sync') {
+        // A login or logout happened in another tab. Reload to sync state securely.
+        window.location.reload();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   return (
     <>
     <Routes>
@@ -104,8 +116,8 @@ function App() {
       {/* Student Login Route */}
       <Route path="/student/login" element={<StudentLoginPage />} />
 
-      {/* Admin Login Route (Unprotected) */}
-      <Route path="/admin/login" element={<AdminLoginPage />} />
+      {/* Team Login Route (Unprotected, covers Admin, Instructors, Sales, etc.) */}
+      <Route path="/tek_team/login" element={<AdminLoginPage />} />
 
       {/* Admin Routes - Protected for staff roles */}
       <Route path="/admin" element={<ProtectedRoute />}>

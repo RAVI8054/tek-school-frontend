@@ -18,7 +18,7 @@ export function ProtectedRoute({ allowedRoles }) {
 
   if (!user) {
     // Not logged in
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/tek_team/login" replace />;
   }
 
   if (user.role === 'student') {
@@ -38,7 +38,7 @@ export function ProtectedRoute({ allowedRoles }) {
           onClick={() => {
             localStorage.removeItem('tek_admin_user');
             localStorage.removeItem('tek_admin_token');
-            window.location.href = '/admin/login';
+            window.location.href = '/tek_team/login';
           }}
           className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium shadow-sm hover:bg-indigo-700 transition"
         >
