@@ -136,7 +136,7 @@ export const AUDIT = [
 export const ROLE_ACCESS = {
   admin: ['overview','students','cohorts','instructors','salesteam','assignments','content','workshops','enquiries','enquiries-admission','enquiries-tekcampus','placements','outreach','pages','canvas','marketing','community','finance','settings'],
   admissions: ['enquiries','enquiries-admission','enquiries-tekcampus','placements'],
-  salesteam: ['overview','enquiries','enquiries-admission','enquiries-tekcampus','community'],
+  salesteam: ['overview','enquiries','enquiries-admission','enquiries-tekcampus'],
   instructor: ['students','assignments','content'],
   finance: ['finance'],
 };

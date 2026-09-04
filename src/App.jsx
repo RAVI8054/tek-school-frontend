@@ -107,7 +107,7 @@ function App() {
       <Route path="/admin/login" element={<AdminLoginPage />} />
 
       {/* Admin Routes - Protected for staff roles */}
-      <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'admissions']} />}>
+      <Route path="/admin" element={<ProtectedRoute />}>
         <Route index element={<AdminDashboard />} />
         <Route path="students" element={<StudentsPage />} />
         {/* Fill other admin routes with placeholders for now */}
@@ -139,7 +139,7 @@ function App() {
       </Route>
 
       {/* Instructor Routes */}
-      <Route path="/instructor" element={<ProtectedRoute allowedRoles={['instructor', 'admin']} />}>
+      <Route path="/instructor" element={<ProtectedRoute />}>
         <Route index element={<InstructorDashboard />} />
         <Route path="cohorts" element={<InstructorCohortsPage />} />
         <Route path="assignments" element={<InstructorAssignmentsPage />} />
@@ -147,7 +147,7 @@ function App() {
       </Route>
 
       {/* Finance Routes */}
-      <Route path="/finance" element={<ProtectedRoute allowedRoles={['finance', 'admin']} />}>
+      <Route path="/finance" element={<ProtectedRoute />}>
         <Route index element={<FinanceDashboard />} />
         <Route path="management" element={<FinanceManagementPage />} />
         <Route path="settings" element={<FinanceSettingsPage />} />
