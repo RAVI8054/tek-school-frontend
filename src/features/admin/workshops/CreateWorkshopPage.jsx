@@ -238,7 +238,7 @@ export function CreateWorkshopPage() {
               <select required name="host" value={formData.host} onChange={handleChange} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white">
                 <option value="" disabled>Select an instructor...</option>
                 {instructors.map(inst => (
-                  <option key={inst._id} value={inst._id}>{inst.name || 'Unknown'} - {inst.role || 'Instructor'}</option>
+                  <option key={inst.id} value={inst.id}>{inst.name || 'Unknown'} - {inst.role || 'Instructor'}</option>
                 ))}
               </select>
             </div>

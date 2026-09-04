@@ -136,6 +136,10 @@ export async function getStudents() {
   return fetchApi('/auth/student', { method: 'GET' });
 }
 
+export async function getStudentDetailsAdmin(id) {
+  return fetchApi(`/auth/student/${id}`, { method: 'GET' });
+}
+
 export async function updateStudentAdmin(id, data) {
   return fetchApi(`/auth/student/${id}`, {
     method: 'PATCH',
@@ -171,6 +175,42 @@ export async function getInstructors() {
  */
 export async function deleteInstructorAdmin(id) {
   return fetchApi(`/auth/instructor/${id}`, {
+    method: 'DELETE'
+  });
+}
+
+/**
+ * Register a new sales team member (Admin only)
+ */
+export async function registerSalesTeam(data) {
+  return fetchApi(`/auth/salesteam`, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+/**
+ * Fetch all sales team members (Admin only)
+ */
+export async function getSalesTeam() {
+  return fetchApi(`/auth/salesteam`);
+}
+
+/**
+ * Update a sales team member (Admin only)
+ */
+export async function updateSalesTeamAdmin(id, data) {
+  return fetchApi(`/auth/salesteam/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  });
+}
+
+/**
+ * Delete a sales team member (Admin only)
+ */
+export async function deleteSalesTeamAdmin(id) {
+  return fetchApi(`/auth/salesteam/${id}`, {
     method: 'DELETE'
   });
 }
@@ -490,6 +530,25 @@ export async function createAdminWorkshop(data) {
   });
 }
 
+export async function getWorkshopBookingsAdmin() {
+  return fetchApi('/workshops/bookings');
+}
+
+export async function updateWorkshopBookingAdmin(id, data) {
+  return fetchApi(`/workshops/bookings/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteWorkshopBookingAdmin(id) {
+  return fetchApi(`/workshops/bookings/${id}`, { method: 'DELETE' });
+}
+
+export async function getMyWorkshopBookings() {
+  return fetchApi(`/workshops/my-bookings`);
+}
+
 export async function bookWorkshop(id, paymentData = {}) {
   return fetchApi(`/workshops/${id}/book`, {
     method: 'POST',
@@ -516,5 +575,63 @@ export async function uploadWorkshopImage(file) {
 
   return response.json();
 }
+
+// ============================================================================
+// PAYMENT APIs  (Razorpay)
+// ============================================================================
+
+/**
+ * Step 1 — Create a pending payment record + Razorpay order on the server.
+ *
+ * @param {{
+ *   paymentFor: 'Course' | 'Workshop' | 'Other',
+ *   itemId: string,
+ *   amount: number,   // INR (backend converts to paise internally)
+ * }} data
+ */
+export async function initiatePayment({ paymentFor, itemId, amount }) {
+  return fetchApi('/payments/initiatepayment', {
+    method: 'POST',
+    body: JSON.stringify({ paymentFor, itemId, amount, paymentMethod: 'Razorpay' }),
+  });
+}
+
+/**
+ * Step 1 (Guest) — Create a pending payment record + Razorpay order on the server.
+ *
+ * @param {{
+ *   name: string,
+ *   email: string,
+ *   phone?: string,
+ *   paymentFor: 'Course' | 'Workshop' | 'Other',
+ *   itemId: string,
+ *   amount: number,   // INR (backend converts to paise internally)
+ * }} data
+ */
+export async function initiateGuestPayment({ name, email, phone, paymentFor, itemId, amount }) {
+  return fetchApi('/payments/guest-checkout', {
+    method: 'POST',
+    body: JSON.stringify({ name, email, phone, paymentFor, itemId, amount, paymentMethod: 'Razorpay' }),
+  });
+}
+
+/**
+ * Step 2 — Verify Razorpay signature server-side after checkout.
+ * Always call this before showing a success screen.
+ *
+ * @param {{
+ *   razorpay_order_id: string,
+ *   razorpay_payment_id: string,
+ *   razorpay_signature: string,
+ *   paymentId: string,   // Our DB Payment._id from initiatePayment response
+ * }} data
+ */
+export async function verifyPayment({ razorpay_order_id, razorpay_payment_id, razorpay_signature, paymentId }) {
+  return fetchApi('/payments/verifypayment', {
+    method: 'POST',
+    body: JSON.stringify({ razorpay_order_id, razorpay_payment_id, razorpay_signature, paymentId }),
+  });
+}
+
 
 

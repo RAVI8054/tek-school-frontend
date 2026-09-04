@@ -20,8 +20,10 @@ import { CampusAILab } from './features/landing/CampusAILab.jsx';
 // Dashboards
 import { AdminDashboard } from './features/admin/AdminDashboard.jsx';
 import { StudentsPage } from './features/admin/students/StudentsPage.jsx';
+import { StudentDetailsPage } from './features/admin/students/StudentDetailsPage.jsx';
 import { CohortsPage } from './features/admin/CohortsPage.jsx';
 import { InstructorsPage } from './features/admin/instructors/InstructorsPage.jsx';
+import { SalesTeamPage } from './features/admin/salesteam/SalesTeamPage.jsx';
 import { FinancePage } from './features/admin/FinancePage.jsx';
 import { StudioPage } from './features/admin/StudioPage.jsx';
 import { AdminWorkshopsPage } from './features/admin/workshops/AdminWorkshopsPage.jsx';
@@ -106,12 +108,14 @@ function App() {
       <Route path="/admin/login" element={<AdminLoginPage />} />
 
       {/* Admin Routes - Protected for staff roles */}
-      <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'admissions']} />}>
+      <Route path="/admin" element={<ProtectedRoute />}>
         <Route index element={<AdminDashboard />} />
         <Route path="students" element={<StudentsPage />} />
+        <Route path="students/:id" element={<StudentDetailsPage />} />
         {/* Fill other admin routes with placeholders for now */}
         <Route path="cohorts" element={<CohortsPage />} />
         <Route path="instructors" element={<InstructorsPage />} />
+        <Route path="salesteam" element={<SalesTeamPage />} />
         <Route path="assignments" element={<AssignmentsPage />} />
         <Route path="content" element={<ContentPage />} />
         <Route path="enquiries" element={<EnquiriesPage />}>
@@ -137,7 +141,7 @@ function App() {
       </Route>
 
       {/* Instructor Routes */}
-      <Route path="/instructor" element={<ProtectedRoute allowedRoles={['instructor', 'admin']} />}>
+      <Route path="/instructor" element={<ProtectedRoute />}>
         <Route index element={<InstructorDashboard />} />
         <Route path="cohorts" element={<InstructorCohortsPage />} />
         <Route path="assignments" element={<InstructorAssignmentsPage />} />
@@ -145,7 +149,7 @@ function App() {
       </Route>
 
       {/* Finance Routes */}
-      <Route path="/finance" element={<ProtectedRoute allowedRoles={['finance', 'admin']} />}>
+      <Route path="/finance" element={<ProtectedRoute />}>
         <Route index element={<FinanceDashboard />} />
         <Route path="management" element={<FinanceManagementPage />} />
         <Route path="settings" element={<FinanceSettingsPage />} />

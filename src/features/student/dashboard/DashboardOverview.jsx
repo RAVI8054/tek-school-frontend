@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { getMyWorkshopBookings } from "../../../lib/api.js";
 import { useStudentAuthStore } from "../../../store/useStudentAuthStore.js";
 import {
   CLASSES,
@@ -35,6 +37,18 @@ const STAGES = ["Applied", "Screening", "Interview", "Offer"];
 
 export function DashboardOverview() {
   const { user: session } = useStudentAuthStore();
+  const [myWorkshops, setMyWorkshops] = useState([]);
+
+  useEffect(() => {
+    if (session) {
+      getMyWorkshopBookings().then(res => {
+        if (res.data?.bookings) {
+          setMyWorkshops(res.data.bookings);
+        }
+      }).catch(console.error);
+    }
+  }, [session]);
+
   if (!session) return null;
 
   const upcoming = CLASSES.filter((c) => c.status === "upcoming").sort((a, b) => a.date.localeCompare(b.date));
@@ -246,6 +260,35 @@ export function DashboardOverview() {
                 <p className="mt-1 text-[11px] text-slate-500">{formatDate(nextEvent.date)} · {nextEvent.kind}</p>
               </div>
           }
+
+            {myWorkshops.length > 0 && (
+              <Panel title="My Workshops">
+                <ul className="space-y-3">
+                  {myWorkshops.map(b => (
+                    <li key={b._id} className="flex gap-3">
+                      <div className="h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                        {b.workshop?.imageUrl ? (
+                          <img src={b.workshop.imageUrl} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-accent-blue/20 text-[var(--accent-blue-deep)]">
+                            <Video className="h-4 w-4" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-2 text-xs font-semibold leading-snug text-slate-900">{b.workshop?.title}</p>
+                        <p className="mt-1 text-[10px] text-slate-500">
+                          {b.workshop?.startTime ? new Date(b.workshop.startTime).toLocaleDateString() : 'TBA'}
+                          <span className={`ml-2 rounded px-1.5 py-0.5 font-bold ${b.paymentStatus === 'Completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-coral/10 text-coral'}`}>
+                            {b.paymentStatus}
+                          </span>
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Panel>
+            )}
           </aside>
         </section>
       </div>);

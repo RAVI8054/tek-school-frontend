@@ -21,6 +21,11 @@ export function ProtectedRoute({ allowedRoles }) {
     return <Navigate to="/admin/login" replace />;
   }
 
+  if (user.role === 'student') {
+    // Explicitly block students from admin/staff routes
+    return <Navigate to="/" replace />;
+  }
+
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     // Role not authorized
     return (
